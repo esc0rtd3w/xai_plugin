@@ -1,7 +1,7 @@
 #include <sys/memory.h>
 #include <cell/fs/cell_fs_file_api.h>
 #include "gccpch.h"
-#include "cfw_settings.h"
+#include "hfw_settings.h"
 #include "functions.h"
 #include "log.h"
 #include "rebug.h"

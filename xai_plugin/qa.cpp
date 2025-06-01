@@ -10,7 +10,7 @@
 #include <cell/fs/cell_fs_file_api.h>
 #include "log.h"
 #include "qa.h"
-#include "cfw_settings.h"
+#include "hfw_settings.h"
 #include "gccpch.h"
 #include "hvcall.h"
 #include "mm.h"

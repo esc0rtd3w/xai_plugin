@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include "x3.h"
 #include "xRegistry.h"
-#include "cfw_settings.h"
+#include "hfw_settings.h"
 
 #ifndef __GCCPCH__
 #define __GCCPCH__
@@ -28,7 +28,7 @@ static int (*plugin_GetInterface)(int view,int interface);
 static int (*plugin_SetInterface)(int view, int interface, void *Handler);
 static int (*plugin_SetInterface2)(int view, int interface, void *Handler);
 
-// NID Functions cfw_settings
+// NID Functions hfw_settings
 static int (*getDiscHashKey)(void*);
 static int (*authDisc)();
 static int (*cellFsUtilityMount)(const char *device_name, const char *device_fs, const char *device_path, int r6, int write_prot, int r8, int *r9) = 0;

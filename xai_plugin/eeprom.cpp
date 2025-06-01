@@ -29,7 +29,7 @@
 #include "eeprom.h"
 #include "log.h"
 #include "functions.h"
-#include "cfw_settings.h"
+#include "hfw_settings.h"
 #include "cex2dex.h"
 
 int fd;

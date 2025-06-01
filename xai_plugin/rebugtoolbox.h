@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 #include "functions.h"
-#include "cfw_settings.h"
+#include "hfw_settings.h"
 #include "log.h"
 
 typedef struct

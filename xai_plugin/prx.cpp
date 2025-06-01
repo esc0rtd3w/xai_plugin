@@ -6,7 +6,7 @@
 #include <sys/prx.h>
 #include "xmb_plugin.h"
 #include "log.h"
-#include "cfw_settings.h"
+#include "hfw_settings.h"
 #include "cobra.h"
 #include "gccpch.h"
 #include "functions.h"
@@ -94,7 +94,7 @@ int load_functions()
 	xmm0_interface = (xmb_plugin_xmm0 *)GetPluginInterface("xmb_plugin", 'XMM0');
 	xmb2_interface = (xmb_plugin_xmb2 *)GetPluginInterface("xmb_plugin", 'XMB2');
 	
-	setlogpath("/dev_hdd0/tmp/cfw_settings.log"); // Default path
+	setlogpath("/dev_hdd0/tmp/hfw_settings.log"); // Default path
 
 	uint8_t data;
 	int ret = read_product_mode_flag(&data);
@@ -102,7 +102,7 @@ int load_functions()
 	if(ret == CELL_OK)
 	{
 		if(data != 0xFF)		
-			setlogpath("/dev_usb/cfw_settings.log"); // To get output data		
+			setlogpath("/dev_usb/hfw_settings.log"); // To get output data		
 	}
 
 	return 0;

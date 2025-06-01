@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <cell/fs/cell_fs_file_api.h>
-#include "cfw_settings.h"
+#include "hfw_settings.h"
 #include "gccpch.h"
 #include "savegames.h"
 #include "log.h"

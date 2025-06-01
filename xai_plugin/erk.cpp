@@ -9,7 +9,7 @@
 #include "payload.h"
 #include "payloads.h"
 #include "mm.h"
-#include "cfw_settings.h"
+#include "hfw_settings.h"
 #include "gccpch.h"
 #include "log.h"
 #include "erk.h"

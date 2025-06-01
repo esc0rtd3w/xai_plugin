@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "log.h"
-#include "cfw_settings.h"
+#include "hfw_settings.h"
 #include "gccpch.h"
 
 #include <cell/fs/cell_fs_file_api.h>

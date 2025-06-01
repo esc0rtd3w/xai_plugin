@@ -5,7 +5,7 @@
 #include "gccpch.h"
 #include "log.h"
 #include "rebug.h"
-#include "cfw_settings.h"
+#include "hfw_settings.h"
 #include "functions.h"
 #include "xRegistry.h"
 

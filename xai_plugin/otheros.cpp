@@ -12,7 +12,7 @@
 #include "savegames.h"
 #include "functions.h"
 #include "log.h"
-#include "cfw_settings.h"
+#include "hfw_settings.h"
 
 int setup_vflash()
 {

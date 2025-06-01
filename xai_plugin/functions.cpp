@@ -6,7 +6,7 @@
 #include "gccpch.h"
 #include "cobra.h"
 #include "log.h"
-#include "cfw_settings.h"
+#include "hfw_settings.h"
 #include "otheros.h"
 #include "savegames.h"
 
