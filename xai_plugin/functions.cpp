@@ -149,7 +149,8 @@ void sys_sm_set_fan_policy(uint8_t unknown , uint8_t fan_mode, uint8_t fan_speed
 // LV1 Peek/Poke
 uint64_t lv1_peek(uint64_t addr)
 {
-	system_call_1(8, addr);
+	//system_call_1(8, addr);
+	system_call_1(11, addr);
 	return_to_user_prog(uint64_t);
 }
 
