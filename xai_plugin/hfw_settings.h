@@ -278,6 +278,7 @@ int readfile(const char *file, uint8_t *buffer, size_t size);
 int get_usb_device();
 
 void showMessage(const char *string, const char *plugin, const char *tex_icon);
+void showMessageRaw(const char *text, const char *plugin, const char *tex_icon);
 int patch_savedata();
 int create_rifs();
 int getAccountID();

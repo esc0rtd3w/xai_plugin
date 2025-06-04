@@ -339,6 +339,26 @@ void showMessage(const char *string, const char *plugin, const char *tex_icon)
 	NotifyWithTexture(0, tex_icon, 0, &teximg, &dummy, "", "", 0, (wchar_t*)wstring, 0, 0, 0);	
 }
 
+void showMessageRaw(const char *text, const char *plugin, const char *tex_icon)
+{
+    int teximg, dummy = 0;
+    int plugin_uint = FindPlugin((char*)plugin);
+
+    // Convert the ASCII/UTF-8 “text” into a wide‐string buffer
+    wchar_t wbuf[120];
+    int i;
+    for (i = 0; i < 119 && text[i] != '\0'; ++i) {
+        wbuf[i] = (wchar_t)text[i];
+    }
+    wbuf[i] = 0;
+
+    log((char*)text);
+    log("\n");
+
+	FindTexture(&teximg, plugin_uint, tex_icon);
+	NotifyWithTexture(0, tex_icon, 0, &teximg, &dummy, "", "", 0, wbuf, 0, 0, 0);
+}
+
 int create_rifs()
 {
 	int fd, string, usb_port = 0;
