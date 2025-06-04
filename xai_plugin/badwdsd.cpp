@@ -52,7 +52,7 @@ double GetFWVersion()
 
     char msg[64];
     vsh_sprintf(msg, "Firmware Version: %.2f\n", version);
-    showMessage(msgf("%s", msg), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw(msgf("%s", msg), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
     return version;
 }
@@ -168,7 +168,7 @@ bool IsExploited()
 
 	if (verify != 0x536F6E792043656CULL)
 	{
-		showMessage("IsExploited: false", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw("IsExploited: false", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return false;
 	}
 
@@ -176,13 +176,13 @@ bool IsExploited()
 
 	if (res != 0)
 	{
-		showMessage(msgf("lv1_unmap_physical_address_region failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw(msgf("lv1_unmap_physical_address_region failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return false;
 	}*/
 
-	showMessage("IsExploited: true", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	showMessageRaw("IsExploited: true", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	return true;
 }
 
@@ -194,7 +194,7 @@ uint8_t get_bank_indicator()
 
 	if (res != 0)
 	{
-		showMessage(msgf("update_mgr_read_eeprom failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw(msgf("update_mgr_read_eeprom failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return 0x99;
@@ -209,7 +209,7 @@ void set_bank_indicator(uint8_t value)
 
 	if (res != 0)
 	{
-		showMessage(msgf("update_mgr_write_eeprom failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw(msgf("update_mgr_write_eeprom failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return;
@@ -224,14 +224,14 @@ bool FlashIsNor()
 
 	if (res != 0)
 	{
-		showMessage(msgf("lv2_storage_get_cache_of_flash_ext_flag failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw(msgf("lv2_storage_get_cache_of_flash_ext_flag failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return false;
 	}
 
 	// bit 0 set means NAND; cleared means NOR
-	showMessage(msgf("lv2_storage_get_cache_of_flash_ext_flag, res = %d, flag = 0x%02x\n", res, (uint32_t)flag), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	showMessageRaw(msgf("lv2_storage_get_cache_of_flash_ext_flag, res = %d, flag = 0x%02x\n", res, (uint32_t)flag), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	return !(flag & 0x1);
 }
 
@@ -243,13 +243,13 @@ bool TargetIsCEX()
 
 	if (res != 0)
 	{
-		showMessage(msgf("lv2_dbg_get_console_type failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw(msgf("lv2_dbg_get_console_type failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return false;
 	}
 
-	showMessage(msgf("lv2_dbg_get_console_type = 1, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	showMessageRaw(msgf("lv2_dbg_get_console_type = 1, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	return (type == 1);
 }
 
@@ -261,13 +261,13 @@ bool TargetIsDEX()
 
 	if (res != 0)
 	{
-		showMessage(msgf("lv2_dbg_get_console_type failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw(msgf("lv2_dbg_get_console_type failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return false;
 	}
 	
-	showMessage(msgf("lv2_dbg_get_console_type = 2, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	showMessageRaw(msgf("lv2_dbg_get_console_type = 2, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	return (type == 2);
 }
 
@@ -279,13 +279,13 @@ bool TargetIsDECR()
 
 	if (res != 0)
 	{
-		showMessage(msgf("lv2_dbg_get_console_type failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw(msgf("lv2_dbg_get_console_type failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return false;
 	}
 	
-	showMessage(msgf("lv2_dbg_get_console_type = 3, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	showMessageRaw(msgf("lv2_dbg_get_console_type = 3, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	return (type == 3);
 }
 
@@ -293,7 +293,7 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 {
 	const uint8_t* dataa = (const uint8_t*)data;
 
-	showMessage(msgf("NorWrite() offset = 0x%lx, data = 0x%lx, size = %lu\n", offset, (uint64_t)data, size), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw(msgf("NorWrite() offset = 0x%lx, data = 0x%lx, size = %lu\n", offset, (uint64_t)data, size), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 	if (data == NULL)
 		return;
@@ -303,7 +303,7 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 
 	if (!FlashIsNor())
 	{
-		showMessage("Flash is not nor!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw("Flash is not nor!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return;
@@ -319,7 +319,7 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 	static const uint64_t sector_size = 512;
 	uint64_t burst_size = (512 * sector_size);
 
-	showMessage(msgf("burst_size = %lu\n", burst_size), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw(msgf("burst_size = %lu\n", burst_size), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 	uint32_t dev_handle;
 
@@ -327,7 +327,7 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 
 	if (res != 0)
 	{
-		showMessage(msgf("lv2_storage_open failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw(msgf("lv2_storage_open failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return;
@@ -337,7 +337,7 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 
 	if (buf == NULL)
 	{
-		showMessage("malloc failed!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw("malloc failed!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return;
@@ -357,26 +357,26 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 
 		uint64_t sector_idx = (curOffset / sector_size);
 
-		showMessage(msgf("curOffset = 0x%lx, curDataOffset = 0x%lx, processSize = %lu, zzz = %lu, yyy = %lu, xxx = %lu, sector_idx = %lu, left = %lu\n",
-			curOffset, curDataOffset, processSize, zzz, yyy, xxx, sector_idx, left), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+		showMessageRaw(msgf("curOffset = 0x%lx, curDataOffset = 0x%lx, processSize = %lu, zzz = %lu, yyy = %lu, xxx = %lu, sector_idx = %lu, left = %lu\n",
+			curOffset, curDataOffset, processSize, zzz, yyy, xxx, sector_idx, left), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 		if (burst_size > left)
 		{
 			while (burst_size > left)
 				burst_size -= sector_size;
 
-			showMessage(msgf("burst_size = %lu\n", burst_size), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+			showMessageRaw(msgf("burst_size = %lu\n", burst_size), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 		}
 
 		if ((zzz != 0) || (processSize != sector_size))
 		{
-			showMessage("1\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+			showMessageRaw("1\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 			res = lv2_storage_read(dev_handle, 0, sector_idx, 1, buf, &unknown2, dev_flags);
 
 			if (res != 0)
 			{
-				showMessage(msgf("lv2_storage_read failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+				showMessageRaw(msgf("lv2_storage_read failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 				//abort();
 				return;
@@ -388,7 +388,7 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 
 			if (res != 0)
 			{
-				showMessage(msgf("lv2_storage_write failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+				showMessageRaw(msgf("lv2_storage_write failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 				//abort();
 				return;
@@ -401,7 +401,7 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 		}
 		else if ((burst_size > 0) && (left >= burst_size) && ((burst_size % sector_size) == 0))
 		{
-			showMessage("2\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+			showMessageRaw("2\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 			memcpy(&buf[0], &dataa[curDataOffset], burst_size);
 
@@ -409,7 +409,7 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 
 			if (res != 0)
 			{
-				showMessage(msgf("lv2_storage_write failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+				showMessageRaw(msgf("lv2_storage_write failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 				//abort();
 				return;
@@ -422,7 +422,7 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 		}
 		else
 		{
-			showMessage("3\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+			showMessageRaw("3\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 			memcpy(&buf[0], &dataa[curDataOffset], processSize);
 
@@ -430,7 +430,7 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 
 			if (res != 0)
 			{
-				showMessage(msgf("lv2_storage_write failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+				showMessageRaw(msgf("lv2_storage_write failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 				//abort();
 				return;
@@ -447,7 +447,7 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 
 	if (res != 0)
 	{
-		showMessage(msgf("lv2_storage_close failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw(msgf("lv2_storage_close failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return;
@@ -455,14 +455,14 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 
 	free_(buf);
 
-	showMessage("NorWrite() done.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw("NorWrite() done.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 }
 
 void NorRead(uint64_t offset, void* data, uint64_t size)
 {
 	uint8_t* dataa = (uint8_t*)data;
 
-	showMessage(msgf("NorRead() offset = 0x%lx, data = 0x%lx, size = %lu\n", offset, (uint64_t)data, size), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw(msgf("NorRead() offset = 0x%lx, data = 0x%lx, size = %lu\n", offset, (uint64_t)data, size), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 	if (data == NULL)
 		return;
@@ -472,7 +472,7 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 
 	if (!FlashIsNor())
 	{
-		showMessage("Flash is not nor!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw("Flash is not nor!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return;
@@ -488,7 +488,7 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 	static const uint64_t sector_size = 512;
 	uint64_t burst_size = (512 * sector_size);
 
-	showMessage(msgf("burst_size = %lu\n", burst_size), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw(msgf("burst_size = %lu\n", burst_size), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 	uint32_t dev_handle;
 
@@ -496,7 +496,7 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 
 	if (res != 0)
 	{
-		showMessage(msgf("lv2_storage_open failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw(msgf("lv2_storage_open failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return;
@@ -506,7 +506,7 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 
 	if (buf == NULL)
 	{
-		showMessage("malloc failed!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw("malloc failed!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return;
@@ -526,26 +526,26 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 
 		uint64_t sector_idx = (curOffset / sector_size);
 
-		showMessage(msgf("curOffset = 0x%lx, curDataOffset = 0x%lx, processSize = %lu, zzz = %lu, yyy = %lu, xxx = %lu, sector_idx = %lu, left = %lu\n",
-			curOffset, curDataOffset, processSize, zzz, yyy, xxx, sector_idx, left), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+		showMessageRaw(msgf("curOffset = 0x%lx, curDataOffset = 0x%lx, processSize = %lu, zzz = %lu, yyy = %lu, xxx = %lu, sector_idx = %lu, left = %lu\n",
+			curOffset, curDataOffset, processSize, zzz, yyy, xxx, sector_idx, left), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 		if (burst_size > left)
 		{
 			while (burst_size > left)
 				burst_size -= sector_size;
 
-			showMessage(msgf("burst_size = %lu\n", burst_size), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+			showMessageRaw(msgf("burst_size = %lu\n", burst_size), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 		}
 
 		if ((zzz != 0) || (processSize != sector_size))
 		{
-			showMessage("1\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+			showMessageRaw("1\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 			res = lv2_storage_read(dev_handle, 0, sector_idx, 1, buf, &unknown2, dev_flags);
 
 			if (res != 0)
 			{
-				showMessage(msgf("lv2_storage_read failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+				showMessageRaw(msgf("lv2_storage_read failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 				//abort();
 				return;
@@ -560,13 +560,13 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 		}
 		else if ((burst_size > 0) && (left >= burst_size) && ((burst_size % sector_size) == 0))
 		{
-			showMessage("2\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+			showMessageRaw("2\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 			res = lv2_storage_read(dev_handle, 0, sector_idx, (burst_size / sector_size), buf, &unknown2, dev_flags);
 
 			if (res != 0)
 			{
-				showMessage(msgf("lv2_storage_read failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+				showMessageRaw(msgf("lv2_storage_read failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 				//abort();
 				return;
@@ -581,13 +581,13 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 		}
 		else
 		{
-			showMessage("3\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+			showMessageRaw("3\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 			res = lv2_storage_read(dev_handle, 0, sector_idx, 1, buf, &unknown2, dev_flags);
 
 			if (res != 0)
 			{
-				showMessage(msgf("lv2_storage_read failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+				showMessageRaw(msgf("lv2_storage_read failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 				//abort();
 				return;
@@ -606,7 +606,7 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 
 	if (res != 0)
 	{
-		showMessage(msgf("lv2_storage_close failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw(msgf("lv2_storage_close failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return;
@@ -614,16 +614,16 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 
 	free_(buf);
 
-	showMessage("NorRead() done.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw("NorRead() done.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 }
 
 void BadWDSD_Write_Stagex()
 {
-    showMessage("BadWDSD_Write_Stagex()\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw("BadWDSD_Write_Stagex()\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
     if (!FlashIsNor())
     {
-        showMessage("Flash is not nor!!!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+        showMessageRaw("Flash is not nor!!!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
         //abort();
         return;
@@ -634,27 +634,27 @@ void BadWDSD_Write_Stagex()
 
     if (fd < 0)
     {
-        showMessage("Loading /app_home/Stagex.bin\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw("Loading /app_home/Stagex.bin\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
         rc = cellFsOpen("/app_home/Stagex.bin", CELL_FS_O_RDONLY, &fd, NULL, 0);
 
         if (rc != CELL_OK)
-            showMessage("Not found\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+            showMessageRaw("Not found\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
     }
 
     if (fd < 0)
     {
-        showMessage("Loading /dev_hdd0/Stagex.bin\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw("Loading /dev_hdd0/Stagex.bin\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
         rc = cellFsOpen("/dev_hdd0/Stagex.bin", CELL_FS_O_RDONLY, &fd, NULL, 0);
 
         if (rc != CELL_OK)
-            showMessage("Not found\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+            showMessageRaw("Not found\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
     }
 
     if (fd < 0)
     {
-        showMessage("Stagex.bin not found!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+        showMessageRaw("Stagex.bin not found!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
         //abort();
         return;
@@ -663,7 +663,7 @@ void BadWDSD_Write_Stagex()
     CellFsStat stat;
     rc = cellFsFstat(fd, &stat);
     size_t size = (rc == CELL_OK) ? stat.st_size : 0;
-    showMessage(msgf("size = %lu\n", size), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw(msgf("size = %lu\n", size), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
     void* code = malloc_(size);
     uint64_t bytesRead;
@@ -671,36 +671,36 @@ void BadWDSD_Write_Stagex()
 
     cellFsClose(fd);
 
-    showMessage(msgf("code = 0x%lx\n", (uint64_t)code), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw(msgf("code = 0x%lx\n", (uint64_t)code), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
     if (size > (48 * 1024))
     {
-        showMessage("size is too big!!!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+        showMessageRaw("size is too big!!!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
         //abort();
         return;
     }
 
-    showMessage("Writing to flash...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw("Writing to flash...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     // lv1_write(0x2401F031000, size, code);
     NorWrite(0x31000, code, size);
 
     {
-        showMessage(msgf("0x%lx\n", lv1_peek(0x2401F0002000ULL)), (char *)XAI_PLUGIN, (char *)TEX_INFO);
-        showMessage(msgf("0x%lx\n", lv1_peek(0x2401F0310000ULL)), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw(msgf("0x%lx\n", lv1_peek(0x2401F0002000ULL)), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+        showMessageRaw(msgf("0x%lx\n", lv1_peek(0x2401F0310000ULL)), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     }
 
     free_(code);
-    showMessage("BadWDSD_Write_Stagex() done,\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw("BadWDSD_Write_Stagex() done,\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 }
 
 void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
 {
-    showMessage("BadWDSD_Write_ros()\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw("BadWDSD_Write_ros()\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
     if (!FlashIsNor())
     {
-        showMessage("Flash is not nor!!!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+        showMessageRaw("Flash is not nor!!!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
         //abort();
         return;
@@ -711,27 +711,27 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
 
     if (fd < 0)
     {
-        showMessage("Loading /app_home/CoreOS.bin\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw("Loading /app_home/CoreOS.bin\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
         rc = cellFsOpen("/app_home/CoreOS.bin", CELL_FS_O_RDONLY, &fd, NULL, 0);
 
         if (rc != CELL_OK)
-            showMessage("Not found\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+            showMessageRaw("Not found\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
     }
 
     if (fd < 0)
     {
-        showMessage("Loading /dev_hdd0/CoreOS.bin\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw("Loading /dev_hdd0/CoreOS.bin\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
         rc = cellFsOpen("/dev_hdd0/CoreOS.bin", CELL_FS_O_RDONLY, &fd, NULL, 0);
 
         if (rc != CELL_OK)
-            showMessage("Not found\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+            showMessageRaw("Not found\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
     }
 
     if (fd < 0)
     {
-        showMessage("CoreOS.bin not found!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+        showMessageRaw("CoreOS.bin not found!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
         //abort();
         return;
@@ -740,7 +740,7 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
     CellFsStat stat;
     rc = cellFsFstat(fd, &stat);
     size_t size = (rc == CELL_OK) ? stat.st_size : 0;
-    showMessage(msgf("size = %lu\n", size), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw(msgf("size = %lu\n", size), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
     void* code = malloc_(size);
     uint64_t bytesRead;
@@ -748,11 +748,11 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
 
     cellFsClose(fd);
 
-    showMessage(msgf("code = 0x%lx\n", (uint64_t)code), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw(msgf("code = 0x%lx\n", (uint64_t)code), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
     if (size > 0x700000)
     {
-        showMessage("size is too big!!!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+        showMessageRaw("size is too big!!!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
         //abort();
         return;
@@ -760,14 +760,14 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
 
     if (compare)
     {
-        showMessage("Comparing ros...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw("Comparing ros...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
         void* ros0 = malloc_(0x700000);
         void* ros1 = malloc_(0x700000);
 
         if (ros0 == NULL || ros1 == NULL)
         {
-            showMessage("malloc fail!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+            showMessageRaw("malloc fail!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
             //abort();
 
@@ -779,7 +779,7 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
 
         if (memcmp(ros0, ros1, 0x700000))
         {
-            showMessage("ros compare fail!, please reinstall same firmware twice!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+            showMessageRaw("ros compare fail!, please reinstall same firmware twice!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
             //abort();
             return;
@@ -789,18 +789,18 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
         free_(ros0);
     }
 	
-    //showMessage(msgf("Writing to flash (%s)...\n", doFlashRos1 ? "ros1" : "ros0"), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    //showMessageRaw(msgf("Writing to flash (%s)...\n", doFlashRos1 ? "ros1" : "ros0"), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 	const char* banksel = doFlashRos1 ? "ros1" : "ros0";
-    showMessage(msgf("Writing to flash (%s)...\n", (char*)banksel), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw(msgf("Writing to flash (%s)...\n", (char*)banksel), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     NorWrite(doFlashRos1 ? 0x7C0000 : 0x0C0000, code, size);
 
     {
-        showMessage(msgf("0x%lx\n", lv1_peek(0x2401F0002000ULL)), (char *)XAI_PLUGIN, (char *)TEX_INFO);
-        showMessage(msgf("0x%lx\n", lv1_peek(0x2401F0310000ULL)), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw(msgf("0x%lx\n", lv1_peek(0x2401F0002000ULL)), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+        showMessageRaw(msgf("0x%lx\n", lv1_peek(0x2401F0310000ULL)), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     }
 
     free_(code);
-    showMessage("BadWDSD_Write_ros() done.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw("BadWDSD_Write_ros() done.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 }
 
 // BadWDSD/qCFW Installer
@@ -809,7 +809,7 @@ int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
 {
 	if (GetFWVersion() < 4.70)
 	{
-		showMessage("firmware not supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw("firmware not supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return 0;
@@ -817,89 +817,89 @@ int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
 
 	sys_timer_sleep(3);// DEBUG sleep
 
-	//showMessage(msgf("Flash is %s\n", FlashIsNor() ? "NOR" : "NAND"), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	//showMessageRaw(msgf("Flash is %s\n", FlashIsNor() ? "NOR" : "NAND"), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 	const char* flashtype = (FlashIsNor() ? "NOR" : "NAND");
-    showMessage(msgf("Flash is %s\n", (char*)flashtype), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw(msgf("Flash is %s\n", (char*)flashtype), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
 	sys_timer_sleep(3);
 
 	if (TargetIsCEX())
 	{
-		showMessage("Target is CEX\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+		showMessageRaw("Target is CEX\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 	}
 	else if (TargetIsDEX())
 	{
-		showMessage("Target is DEX\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+		showMessageRaw("Target is DEX\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 	}
 	else if (TargetIsDECR())
 	{
-		showMessage("Target is DECR\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+		showMessageRaw("Target is DECR\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 	}
 	else
 	{
-		showMessage("Unknown target!!!\n", (char *)XAI_PLUGIN, (char *)TEX_WARNING);
+		showMessageRaw("Unknown target!!!\n", (char *)XAI_PLUGIN, (char *)TEX_WARNING);
 		return 0;
 	}
 
-	showMessage("DEBUG: Writing Stagex will begin in 30 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw("DEBUG: Writing Stagex will begin in 30 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 	sys_timer_sleep(30);// DEBUG sleep
 
     if (!doLegacy)
     {
-        showMessage("Installing Stagex.bin...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw("Installing Stagex.bin...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
         //BadWDSD_Write_Stagex();
-		showMessage("DEBUG: BadWDSD_Write_Stagex() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
-        showMessage("Stagex.bin installed.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+		showMessageRaw("DEBUG: BadWDSD_Write_Stagex() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+        showMessageRaw("Stagex.bin installed.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
-        showMessage("Installing CoreOS.bin...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw("Installing CoreOS.bin...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
         if (!IsExploited())
         {
-            showMessage("You MUST be exploited at this point!\nInstall modchip first!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+            showMessageRaw("You MUST be exploited at this point!\nInstall modchip first!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
             // abort();
             return 0;
         }
 
         uint8_t bank_indicator = get_bank_indicator();
-        showMessage(msgf("bank_indicator = 0x%x\n", (uint32_t)bank_indicator), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw(msgf("bank_indicator = 0x%x\n", (uint32_t)bank_indicator), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
         if (bank_indicator != 0x00)
         {
-            showMessage("Please reinstall firmware ONCE again then try again.\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+            showMessageRaw("Please reinstall firmware ONCE again then try again.\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
             // abort();
             return 0;
         }
 		
-		showMessage("DEBUG: Writing CoreOS will begin in 30 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+		showMessageRaw("DEBUG: Writing CoreOS will begin in 30 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 		sys_timer_sleep(30);// DEBUG sleep
 
         //BadWDSD_Write_ros(false, false);
-		showMessage("DEBUG: BadWDSD_Write_ros() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+		showMessageRaw("DEBUG: BadWDSD_Write_ros() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
         set_bank_indicator(0xff);
         bank_indicator = get_bank_indicator();
-        showMessage(msgf("bank_indicator = 0x%x\n", (uint32_t)bank_indicator), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw(msgf("bank_indicator = 0x%x\n", (uint32_t)bank_indicator), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
         if (bank_indicator != 0xff)
         {
-            showMessage("Bank switch failed!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+            showMessageRaw("Bank switch failed!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
             // abort();
             return 0;
         }
 
-        showMessage("CoreOS.bin installed.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw("CoreOS.bin installed.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     }
     else
     {
         // legacy install
-        showMessage("Legacy install\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+        showMessageRaw("Legacy install\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
         //BadWDSD_Write_Stagex();
         //BadWDSD_Write_ros(!doSkipRosCompare, doFlashRos1);
-		showMessage("DEBUG: BadWDSD_Write_Stagex() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
-		showMessage("DEBUG: BadWDSD_Write_ros() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+		showMessageRaw("DEBUG: BadWDSD_Write_Stagex() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+		showMessageRaw("DEBUG: BadWDSD_Write_ros() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     }
 
-	showMessage("DEBUG: return 1\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw("DEBUG: return 1\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 	
     sys_timer_sleep(5);
 	VerifyQCFW();
@@ -913,7 +913,7 @@ int InstallStagexOnly()
 {
 	if (GetFWVersion() < 4.70)
 	{
-		showMessage("firmware not supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw("firmware not supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return 0;
@@ -921,13 +921,13 @@ int InstallStagexOnly()
 
 	sys_timer_sleep(3);// DEBUG sleep
 
-    showMessage("DEBUG: Writing Stagex will begin in 30 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw("DEBUG: Writing Stagex will begin in 30 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     sys_timer_sleep(30);
 
-    showMessage("Installing Stagex.bin...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw("Installing Stagex.bin...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     //BadWDSD_Write_Stagex();
-	showMessage("DEBUG: BadWDSD_Write_Stagex() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
-    showMessage("Stagex.bin installed.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw("DEBUG: BadWDSD_Write_Stagex() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+    showMessageRaw("Stagex.bin installed.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
     sys_timer_sleep(5);
 	VerifyStagexOnly();
@@ -943,7 +943,7 @@ int InstallCoreOSOnly(bool doSkipRosCompare, bool doFlashRos1)
 {
 	if (GetFWVersion() < 4.70)
 	{
-		showMessage("firmware not supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw("firmware not supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return 0;
@@ -951,37 +951,37 @@ int InstallCoreOSOnly(bool doSkipRosCompare, bool doFlashRos1)
 	
 	sys_timer_sleep(3);// DEBUG sleep
 
-    showMessage("Installing CoreOS.bin...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw("Installing CoreOS.bin...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     if (!IsExploited())
     {
-        showMessage("You MUST be exploited at this point!\nInstall modchip first!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+        showMessageRaw("You MUST be exploited at this point!\nInstall modchip first!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
         return 0;
     }
 
     uint8_t bank_indicator = get_bank_indicator();
-    showMessage(msgf("bank_indicator = 0x%x\n", (uint32_t)bank_indicator), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw(msgf("bank_indicator = 0x%x\n", (uint32_t)bank_indicator), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     if (bank_indicator != 0x00)
     {
-        showMessage("Please reinstall firmware ONCE again then try again.\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+        showMessageRaw("Please reinstall firmware ONCE again then try again.\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
         return 0;
     }
 
-    showMessage("DEBUG: Writing CoreOS will begin in 30 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw("DEBUG: Writing CoreOS will begin in 30 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     sys_timer_sleep(30);
 
     //BadWDSD_Write_ros(!doSkipRosCompare, doFlashRos1);
-	showMessage("DEBUG: BadWDSD_Write_ros() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw("DEBUG: BadWDSD_Write_ros() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
     set_bank_indicator(0xff);
     bank_indicator = get_bank_indicator();
-    showMessage(msgf("bank_indicator = 0x%x\n", (uint32_t)bank_indicator), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw(msgf("bank_indicator = 0x%x\n", (uint32_t)bank_indicator), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     if (bank_indicator != 0xff)
     {
-        showMessage("Bank switch failed!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+        showMessageRaw("Bank switch failed!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
         return 0;
     }
 
-    showMessage("CoreOS.bin installed.\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+    showMessageRaw("CoreOS.bin installed.\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 	
     sys_timer_sleep(5);
 	VerifyCoreOSOnly();
@@ -991,43 +991,43 @@ int InstallCoreOSOnly(bool doSkipRosCompare, bool doFlashRos1)
 
 void VerifyQCFW(void)
 {
-	showMessage("VerifyQCFW: Not Yet Implemented", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw("VerifyQCFW: Not Yet Implemented", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 }
 
 void VerifyStagexOnly(void)
 {
-	showMessage("VerifyStagexOnly: Not Yet Implemented", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw("VerifyStagexOnly: Not Yet Implemented", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 }
 
 void VerifyCoreOSOnly(void)
 {
-	showMessage("VerifyCoreOSOnly: Not Yet Implemented", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw("VerifyCoreOSOnly: Not Yet Implemented", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 }
 
 void CompareROSBanks(void)
 {
-    showMessage("Comparing ros...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+    showMessageRaw("Comparing ros...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
     void* ros0 = malloc_(0x700000);
     void* ros1 = malloc_(0x700000);
 
     if (ros0 == NULL || ros1 == NULL)
     {
-        showMessage("malloc fail!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+        showMessageRaw("malloc fail!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
         //abort();
 
         return;
     }
 
-	showMessage("Reading ROS0", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw("Reading ROS0", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     NorRead(0x0C0000, ros0, 0x700000);
-	showMessage("Reading ROS1", (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	showMessageRaw("Reading ROS1", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     NorRead(0x7C0000, ros1, 0x700000);
 
     if (memcmp(ros0, ros1, 0x700000))
     {
-        showMessage("ros compare fail!, please reinstall same firmware twice!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+        showMessageRaw("ros compare fail!, please reinstall same firmware twice!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
         return;
     }
 
