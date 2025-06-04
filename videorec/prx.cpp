@@ -97,19 +97,19 @@ void log(char * buffer)
 	int fd;
 	uint64_t nrw;
 	
-	if(cellFsOpen("/dev_hdd0/tmp/cfw_settings.log", CELL_FS_O_RDWR|CELL_FS_O_CREAT|CELL_FS_O_APPEND, &fd, NULL, 0) != CELL_OK)
+	if(cellFsOpen("/dev_hdd0/tmp/hfw_settings.log", CELL_FS_O_RDWR|CELL_FS_O_CREAT|CELL_FS_O_APPEND, &fd, NULL, 0) != CELL_OK)
 	{
-		//notify("unable to open.");
+		//ShowMessage("unable to open.", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 	}
 	else
 	{
 		if(cellFsWrite(fd, buffer, size, &nrw) !=CELL_OK)
 		{
-			//notify("unable to write.");
+			//ShowMessage("unable to write.", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 		}
 		else
 		{
-			//notify("data written.");
+			//ShowMessage("data written.", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		}
 	}
 	err = cellFsClose(fd);
@@ -408,7 +408,7 @@ int (*cellFsOpen_bk)(const char *path,int flags,int *fd,void *arg,uint64_t size)
 int cellFsOpen_hook(const char *path,int flags,int *fd,void *arg,uint64_t size)
 {
 	reading_sfo = false;
-	if(strcmp(path,"/dev_hdd0/tmp/cfw_settings.log") == 0)
+	if(strcmp(path,"/dev_hdd0/tmp/hfw_settings.log") == 0)
 	{
 		return cellFsOpen_bk(path,flags,fd,arg,size);
 	}
