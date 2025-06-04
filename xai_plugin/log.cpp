@@ -294,3 +294,13 @@ void notify(char *param)
 	(void*&)(vshtask_A02D46E7) = (void*)((int)getNIDfunc("vshtask", 0xA02D46E7)); // notification message func
 	vshtask_A02D46E7(0, param);
 }
+
+char* msgf(const char* fmt, ...)
+{
+    static char buffer[256];
+    va_list ap;
+    va_start(ap, fmt);
+    vsh_sprintf(buffer, fmt, ap);
+    va_end(ap);
+    return buffer;
+}

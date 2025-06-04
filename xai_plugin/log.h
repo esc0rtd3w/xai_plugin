@@ -51,4 +51,6 @@ void notify(const char *format, int param1);
 void notify(const char *format, int param1, int param2);
 void notify(const char *format, int param1, int param2, int param3);
 
+char* msgf(const char* fmt, ...);
+
 #endif /* _LOG_H */

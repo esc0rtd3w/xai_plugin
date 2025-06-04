@@ -65,6 +65,12 @@ int lv2_storage_write(uint32_t dev_handle, uint64_t unknown1, uint64_t start_sec
 	return_to_user_prog(int);
 }
 
+int lv2_dbg_get_console_type(uint64_t* out_type)
+{
+	system_call_1(985, (uint64_t)out_type);
+	return_to_user_prog(int);
+}
+
 
 int sys_storage_get_device_info(uint64_t device, storage_device_info *device_info)
 {

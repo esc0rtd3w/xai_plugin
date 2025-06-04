@@ -239,6 +239,7 @@ int lv2_storage_open(uint64_t dev_id, uint32_t *dev_handle);
 int lv2_storage_close(uint32_t dev_handle);
 int lv2_storage_read(uint32_t dev_handle, uint64_t unknown1, uint64_t start_sector, uint64_t sector_count, const void *buf, uint32_t *unknown2, uint64_t flags);
 int lv2_storage_write(uint32_t dev_handle, uint64_t unknown1, uint64_t start_sector, uint64_t sector_count, const void *buf, uint32_t *unknown2, uint64_t flags);
+int lv2_dbg_get_console_type(uint64_t* out_type);
 
 int sys_storage_get_device_info(uint64_t device, storage_device_info *device_info);
 int sys_storage_get_device_info2(uint64_t device, device_info_t *device_info);
