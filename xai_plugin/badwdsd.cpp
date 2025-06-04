@@ -24,6 +24,39 @@ size_t GetFileSize(const char* path)
     return stat.st_size;
 }
 
+double GetFWVersion()
+{
+    int32_t fd, rc = cellFsOpen("/dev_flash/vsh/etc/version.txt", CELL_FS_O_RDONLY, &fd, NULL, 0);
+    if (rc != CELL_OK)
+	{
+        return 0.0;
+	}
+
+    char bufs[64];
+    uint64_t len = 0;
+    rc = cellFsRead(fd, bufs, sizeof(bufs) - 1, &len);
+    cellFsClose(fd);
+    if (rc != CELL_OK || len < 14)  // need at least "release:0X.XX00:"
+	{
+        return 0.0;
+	}
+
+    bufs[len] = '\0';
+
+    // buf layout: "release:0X.XX00:"
+    char* p = bufs + 8;  // points at '0'
+    int ip = (p[0] - '0') * 10 + (p[1] - '0');
+    int fp = (p[3] - '0') * 10 + (p[4] - '0');
+
+	double version = (double)ip + ((double)fp / 100.0);
+
+    char msg[64];
+    vsh_sprintf(msg, "Firmware Version: %.2f\n", version);
+    showMessage(msgf("%s", msg), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+
+    return version;
+}
+
 void lv1_read(uint64_t addr, uint64_t size, void *out_Buf)
 {
 	if (size == 0)
@@ -768,39 +801,6 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
 
     free_(code);
     showMessage("BadWDSD_Write_ros() done.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO);
-}
-
-double GetFWVersion()
-{
-    int32_t fd, rc = cellFsOpen("/dev_flash/vsh/etc/version.txt", CELL_FS_O_RDONLY, &fd, NULL, 0);
-    if (rc != CELL_OK)
-	{
-        return 0.0;
-	}
-
-    char bufs[64];
-    uint64_t len = 0;
-    rc = cellFsRead(fd, bufs, sizeof(bufs) - 1, &len);
-    cellFsClose(fd);
-    if (rc != CELL_OK || len < 14)  // need at least "release:0X.XX00:"
-	{
-        return 0.0;
-	}
-
-    bufs[len] = '\0';
-
-    // buf layout: "release:0X.XX00:"
-    char* p = bufs + 8;  // points at '0'
-    int ip = (p[0] - '0') * 10 + (p[1] - '0');
-    int fp = (p[3] - '0') * 10 + (p[4] - '0');
-
-	double version = (double)ip + ((double)fp / 100.0);
-
-    char msg[64];
-    vsh_sprintf(msg, "Firmware Version: %.2f\n", version);
-    showMessage(msgf("%s", msg), (char *)XAI_PLUGIN, (char *)TEX_INFO);
-
-    return version;
 }
 
 // BadWDSD/qCFW Installer

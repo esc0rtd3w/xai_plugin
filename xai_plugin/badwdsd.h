@@ -20,6 +20,7 @@ struct lv2_storage_device_info {
 
 bool IsFileExist(const char* path);
 size_t GetFileSize(const char* path);
+double GetFWVersion();
 
 void lv1_read(uint64_t addr, uint64_t size, void *out_Buf);
 void lv1_write(uint64_t addr, uint64_t size, const void *in_Buf);

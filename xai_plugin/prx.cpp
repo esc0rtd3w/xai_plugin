@@ -18,6 +18,10 @@
 #include "rebugtoolbox.h"
 #include "erk.h"
 
+// PS3HEN
+#include "hen.h"
+#include "badwdsd.h"
+
 #define XAI_VERSION "XAI Version 1.20"
 
 SYS_MODULE_INFO(xai_plugin, 0, 1, 1);
@@ -160,6 +164,121 @@ void xai_plugin_interface::xai_plugin_exit(void)
 
 static void plugin_thread(uint64_t arg)
 {
+
+	// HFW Tools XML
+
+	// Restart PS3
+	if(strcmp(action_thread,"soft_reboot_action")==0)
+	{
+		rebootXMB(SYS_SOFT_REBOOT);
+	}
+	else if(strcmp(action_thread,"hard_reboot_action")==0)
+	{
+		rebootXMB(SYS_HARD_REBOOT);
+	}
+	else if(strcmp(action_thread,"power_off_action")==0)
+	{
+		rebootXMB(SYS_SHUTDOWN);
+	}
+
+	// BadWDSD/qCFW
+	/*else if(strcmp(action_thread, "badwdsd_install_qcfw") == 0)	
+	{
+		InstallQCFW(false, false, false);// Default FALSE (doLegacy, doSkipRosCompare, doFlashRos1)
+	}
+	else if(strcmp(action_thread, "badwdsd_install_stagex_only") == 0)	
+	{
+		InstallStagexOnly();
+	}
+	else if(strcmp(action_thread, "badwdsd_install_coreos_only") == 0)	
+	{
+		InstallCoreOSOnly(false, false);// Default FALSE doSkipRosCompare, doFlashRos1)
+	}*/
+
+	else if (strcmp(action_thread, "badwdsd_install_qcfw") == 0)
+	{
+		if (!InstallQCFW(false, false, false))
+		{
+			notify("QCFW install failed, exiting.\n");
+			return;
+		}
+	}
+	else if (strcmp(action_thread, "badwdsd_install_stagex_only") == 0)
+	{
+		if (!InstallStagexOnly())
+		{
+			notify("Stagex install failed, exiting.\n");
+			return;
+		}
+	}
+	else if (strcmp(action_thread, "badwdsd_install_coreos_only") == 0)
+	{
+		if (!InstallCoreOSOnly(false, false))
+		{
+			notify("CoreOS install failed, exiting.\n");
+			return;
+		}
+	}
+	
+	else if(strcmp(action_thread, "badwdsd_verify_qcfw") == 0)	
+	{
+		VerifyQCFW();
+	}
+	else if(strcmp(action_thread, "badwdsd_verify_stagex_only") == 0)	
+	{
+		VerifyStagexOnly();
+	}
+	else if(strcmp(action_thread, "badwdsd_verify_coreos_only") == 0)	
+	{
+		VerifyCoreOSOnly();
+	}
+	
+	// Test indivdual functions
+	else if(strcmp(action_thread, "badwdsd_get_fw_version") == 0)	
+	{
+		GetFWVersion();
+	}
+	else if(strcmp(action_thread, "badwdsd_target_is_cex") == 0)	
+	{
+		TargetIsCEX();
+	}
+	else if(strcmp(action_thread, "badwdsd_target_is_dex") == 0)	
+	{
+		TargetIsDEX();
+	}
+	else if(strcmp(action_thread, "badwdsd_target_is_decr") == 0)	
+	{
+		TargetIsDECR();
+	}
+	else if(strcmp(action_thread, "badwdsd_is_exploited") == 0)	
+	{
+		IsExploited();
+	}
+	else if(strcmp(action_thread, "badwdsd_get_bank_indicator") == 0)	
+	{
+		get_bank_indicator();
+	}
+	else if(strcmp(action_thread, "badwdsd_set_bank_indicator_00") == 0)	
+	{
+		set_bank_indicator(0x00);
+	}
+	else if(strcmp(action_thread, "badwdsd_set_bank_indicator_ff") == 0)	
+	{
+		set_bank_indicator(0xff);
+	}
+	else if(strcmp(action_thread, "badwdsd_get_flash_type") == 0)	
+	{
+		const char* flashtype = (FlashIsNor() ? "NOR" : "NAND");
+		showMessage(msgf("Flash is %s\n", (char*)flashtype), (char *)XAI_PLUGIN, (char *)TEX_INFO);
+	}
+	else if(strcmp(action_thread, "badwdsd_nor_read_compare_ros_banks") == 0)	
+	{
+		CompareROSBanks();
+	}
+
+
+	/*
+	// EvilNat defaults
 	// Shutdown options
 	if(strcmp(action_thread, "shutdown_action") == 0)	
 		rebootXMB(SYS_SHUTDOWN);	
@@ -428,13 +547,14 @@ static void plugin_thread(uint64_t arg)
 		show_bd_info();	
 	else if(strcmp(action_thread, "show_version") == 0)
 		notify(XAI_VERSION);
-	/*else if(strcmp(action_thread, "toggle_sysconf_rco") == 0)
-	{
-		CellFsStat statinfo;
 
-		if(toggle_sysconf() == CELL_OK)
-			showMessage((cellFsStat("/dev_flash/vsh/resource/sysconf_plugin.rco.ori", &statinfo) == CELL_OK) ? "msg_mod_sysconf_enabled" : "msg_ori_sysconf_enabled", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
-	}*/
+	//else if(strcmp(action_thread, "toggle_sysconf_rco") == 0)
+	//{
+	//	CellFsStat statinfo;
+	//
+	//	if(toggle_sysconf() == CELL_OK)
+	//		showMessage((cellFsStat("/dev_flash/vsh/resource/sysconf_plugin.rco.ori", &statinfo) == CELL_OK) ? "msg_mod_sysconf_enabled" : "msg_ori_sysconf_enabled", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	//}
 
 	// Buzzer Options
 	else if(strcmp(action_thread, "buzzer_single") == 0)
@@ -550,15 +670,15 @@ static void plugin_thread(uint64_t arg)
 		check_region_values();
 
 	// Rebug options	
-	/*else if(strcmp(action_thread, "normal_mode") == 0)	
-	{
-		if(normal_mode() == CELL_OK)
-		{
-			showMessage("msg_normal_mode", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
-			wait(2);
-			rebootXMB(SYS_SOFT_REBOOT);
-		}
-	}
+	//else if(strcmp(action_thread, "normal_mode") == 0)	
+	//{
+	//	if(normal_mode() == CELL_OK)
+	//	{
+	//		showMessage("msg_normal_mode", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	//		wait(2);
+	//		rebootXMB(SYS_SOFT_REBOOT);
+	//	}
+	//}
 	else if(strcmp(action_thread, "rebug_mode") == 0)	
 	{
 		if(rebug_mode() == CELL_OK)
@@ -585,11 +705,11 @@ static void plugin_thread(uint64_t arg)
 			wait(3);
 			rebootXMB(SYS_SOFT_REBOOT);
 		}
-	}*/
-	/*else if(strcmp(action_thread, "download_toolbox") == 0)	
-		download_toolbox();*/
-	/*else if(strcmp(action_thread, "install_toolbox") == 0)	
-		install_toolbox();*/
+	}
+	//else if(strcmp(action_thread, "download_toolbox") == 0)	
+	//	download_toolbox();
+	//else if(strcmp(action_thread, "install_toolbox") == 0)	
+	//	install_toolbox();
 
 	// Advanced Tools options
 	else if(strcmp(action_thread, "rsod_fix") == 0)
@@ -754,19 +874,20 @@ static void plugin_thread(uint64_t arg)
 		recovery_mode();
 			
 	// Unused options
-	/*else if(strcmp(action_thread, "enable_screenshot") == 0)			
-		enable_screenshot();		
-	else if(strcmp(action_thread, "enable_recording") == 0)	
-		enable_recording();	
-	else if(strcmp(action_thread, "override_sfo") == 0)		
-		override_sfo();					
-	else if(strcmp(action_thread, "enable_hvdbg") == 0)
-	{
-		if(enable_hvdbg() == true)
-			rebootXMB(SYS_HARD_REBOOT);
-	}
-	else if(strcmp(action_thread, "usb_firm_loader") == 0)	
-		usb_firm_loader();*/
+	//else if(strcmp(action_thread, "enable_screenshot") == 0)			
+	//	enable_screenshot();		
+	//else if(strcmp(action_thread, "enable_recording") == 0)	
+	//	enable_recording();	
+	//else if(strcmp(action_thread, "override_sfo") == 0)		
+	//	override_sfo();					
+	//else if(strcmp(action_thread, "enable_hvdbg") == 0)
+	//{
+	//	if(enable_hvdbg() == true)
+	//		rebootXMB(SYS_HARD_REBOOT);
+	//}
+	//else if(strcmp(action_thread, "usb_firm_loader") == 0)	
+	//	usb_firm_loader();
+	*/
 	
 	sys_ppu_thread_exit(0);
 }
