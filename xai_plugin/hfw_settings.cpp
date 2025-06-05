@@ -356,7 +356,7 @@ void showMessageRaw(const char *text, const char *plugin, const char *tex_icon)
     log("\n");
 
 	FindTexture(&teximg, plugin_uint, tex_icon);
-	NotifyWithTexture(0, tex_icon, 0, &teximg, &dummy, "", "", 0, wbuf, 0, 0, 0);
+	NotifyWithTexture(0, tex_icon, 0, &teximg, &dummy, "", "", 0, (wchar_t*)wbuf, 0, 0, 0);
 }
 
 int create_rifs()

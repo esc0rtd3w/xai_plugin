@@ -50,11 +50,25 @@ double GetFWVersion()
 
 	double version = (double)ip + ((double)fp / 100.0);
 
-    char msg[64];
-    vsh_sprintf(msg, "Firmware Version: %.2f\n", version);
-    showMessageRaw(msgf("%s", msg), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+    //char msg[64];
+    //vsh_sprintf(msg, "Firmware Version: %.2f\n", version);
+    showMessageRaw(msgf("Firmware Version: %.2f\n", version), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
     return version;
+}
+
+bool CheckFirmwareVersion()
+{
+	if (GetFWVersion() < 4.70)
+	{
+		//showMessageRaw("Firmware NOT supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		return false;
+	}
+	else
+	{
+		//showMessageRaw("Firmware supported!\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+		return true;
+	}
 }
 
 void lv1_read(uint64_t addr, uint64_t size, void *out_Buf)
@@ -807,23 +821,43 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
 // returns 1 on success, 0 on failure
 int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
 {
-	if (GetFWVersion() < 4.70)
+	/*if (GetFWVersion() < 4.70)
 	{
 		showMessageRaw("firmware not supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
+		return 0;
+	}*/
+
+	if (CheckFirmwareVersion())
+	{
+		showMessageRaw("You have a compatible firmware version!\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	}
+	else
+	{
+		showMessageRaw("You DO NOT have a compatible firmware version!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return 0;
 	}
 
 	sys_timer_sleep(3);// DEBUG sleep
 
 	//showMessageRaw(msgf("Flash is %s\n", FlashIsNor() ? "NOR" : "NAND"), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
-	const char* flashtype = (FlashIsNor() ? "NOR" : "NAND");
-    showMessageRaw(msgf("Flash is %s\n", (char*)flashtype), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+	//const char* flashtype = (FlashIsNor() ? "NOR" : "NAND");
+    //showMessageRaw(msgf(flashtype), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+
+	if (GetFlashType() == "NOR")
+	{
+		showMessageRaw("You have a compatible flash type!\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	}
+	else
+	{
+		showMessageRaw("You DO NOT have a compatible flash type!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		return 0;
+	}
 
 	sys_timer_sleep(3);
 
-	if (TargetIsCEX())
+	/*if (TargetIsCEX())
 	{
 		showMessageRaw("Target is CEX\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 	}
@@ -838,6 +872,12 @@ int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
 	else
 	{
 		showMessageRaw("Unknown target!!!\n", (char *)XAI_PLUGIN, (char *)TEX_WARNING);
+		return 0;
+	}*/
+
+	// Return 0 if unknown
+	if (GetTarget() == 0)
+	{
 		return 0;
 	}
 
@@ -911,11 +951,32 @@ int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
 // returns 1 on success, 0 on failure
 int InstallStagexOnly()
 {
-	if (GetFWVersion() < 4.70)
+	if (CheckFirmwareVersion())
 	{
-		showMessageRaw("firmware not supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw("You have a compatible firmware version!\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	}
+	else
+	{
+		showMessageRaw("You DO NOT have a compatible firmware version!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		return 0;
+	}
 
-		//abort();
+	sys_timer_sleep(3);// DEBUG sleep
+
+	if (GetFlashType() == "NOR")
+	{
+		showMessageRaw("You have a compatible flash type!\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	}
+	else
+	{
+		showMessageRaw("You DO NOT have a compatible flash type!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		return 0;
+	}
+
+	sys_timer_sleep(3);// DEBUG sleep
+	
+	if (GetTarget() == 0)
+	{
 		return 0;
 	}
 
@@ -941,14 +1002,35 @@ int InstallStagexOnly()
 // returns 1 on success, 0 on failure
 int InstallCoreOSOnly(bool doSkipRosCompare, bool doFlashRos1)
 {
-	if (GetFWVersion() < 4.70)
+	if (CheckFirmwareVersion())
 	{
-		showMessageRaw("firmware not supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
+		showMessageRaw("You have a compatible firmware version!\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	}
+	else
+	{
+		showMessageRaw("You DO NOT have a compatible firmware version!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return 0;
 	}
+
+	sys_timer_sleep(3);// DEBUG sleep
+
+	if (GetFlashType() == "NOR")
+	{
+		showMessageRaw("You have a compatible flash type!\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	}
+	else
+	{
+		showMessageRaw("You DO NOT have a compatible flash type!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		return 0;
+	}
+
+	sys_timer_sleep(3);// DEBUG sleep
 	
+	if (GetTarget() == 0)
+	{
+		return 0;
+	}
+
 	sys_timer_sleep(3);// DEBUG sleep
 
     showMessageRaw("Installing CoreOS.bin...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
@@ -1002,6 +1084,40 @@ void VerifyStagexOnly(void)
 void VerifyCoreOSOnly(void)
 {
 	showMessageRaw("VerifyCoreOSOnly: Not Yet Implemented", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+}
+
+uint8_t GetTarget()
+{
+	uint8_t target = 0;
+
+	if (TargetIsCEX())
+	{
+		target = 1;
+		showMessageRaw("Target is CEX\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+	}
+	else if (TargetIsDEX())
+	{
+		target = 2;
+		showMessageRaw("Target is DEX\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+	}
+	else if (TargetIsDECR())
+	{
+		target = 3;
+		showMessageRaw("Target is DECR\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+	}
+	else
+	{
+		target = 0;
+		showMessageRaw("Unknown target!!!\n", (char *)XAI_PLUGIN, (char *)TEX_WARNING);
+	}
+	return target;
+}
+
+const char* GetFlashType()
+{
+	const char* flashtype = (FlashIsNor() ? "NOR" : "NAND");
+	showMessage(msgf(flashtype), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+	return flashtype;
 }
 
 void CompareROSBanks(void)

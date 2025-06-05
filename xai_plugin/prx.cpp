@@ -238,17 +238,13 @@ static void plugin_thread(uint64_t arg)
 	{
 		GetFWVersion();
 	}
-	else if(strcmp(action_thread, "badwdsd_target_is_cex") == 0)	
+	else if(strcmp(action_thread, "badwdsd_get_target") == 0)	
 	{
-		TargetIsCEX();
+		GetTarget();
 	}
-	else if(strcmp(action_thread, "badwdsd_target_is_dex") == 0)	
+	else if(strcmp(action_thread, "badwdsd_get_flash_type") == 0)	
 	{
-		TargetIsDEX();
-	}
-	else if(strcmp(action_thread, "badwdsd_target_is_decr") == 0)	
-	{
-		TargetIsDECR();
+		GetFlashType();
 	}
 	else if(strcmp(action_thread, "badwdsd_is_exploited") == 0)	
 	{
@@ -266,16 +262,11 @@ static void plugin_thread(uint64_t arg)
 	{
 		set_bank_indicator(0xff);
 	}
-	else if(strcmp(action_thread, "badwdsd_get_flash_type") == 0)	
-	{
-		const char* flashtype = (FlashIsNor() ? "NOR" : "NAND");
-		showMessage(msgf("Flash is %s\n", (char*)flashtype), (char *)XAI_PLUGIN, (char *)TEX_INFO);
-	}
 	else if(strcmp(action_thread, "badwdsd_nor_read_compare_ros_banks") == 0)	
 	{
 		CompareROSBanks();
 	}
-
+	
 
 	/*
 	// EvilNat defaults
