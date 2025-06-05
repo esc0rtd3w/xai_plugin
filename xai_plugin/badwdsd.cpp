@@ -57,16 +57,16 @@ double GetFWVersion()
     return version;
 }
 
-bool CheckFirmwareVersion()
+bool CheckFWVersion()
 {
 	if (GetFWVersion() < 4.70)
 	{
-		//showMessageRaw("Firmware NOT supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		showMessageRaw("Firmware NOT supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return false;
 	}
 	else
 	{
-		//showMessageRaw("Firmware supported!\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+		showMessageRaw("Firmware supported!\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 		return true;
 	}
 }
@@ -238,14 +238,14 @@ bool FlashIsNor()
 
 	if (res != 0)
 	{
-		showMessageRaw(msgf("lv2_storage_get_cache_of_flash_ext_flag failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		//showMessageRaw(msgf("lv2_storage_get_cache_of_flash_ext_flag failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
 		//abort();
 		return false;
 	}
 
 	// bit 0 set means NAND; cleared means NOR
-	showMessageRaw(msgf("lv2_storage_get_cache_of_flash_ext_flag, res = %d, flag = 0x%02x\n", res, (uint32_t)flag), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	//showMessageRaw(msgf("lv2_storage_get_cache_of_flash_ext_flag, res = %d, flag = 0x%02x\n", res, (uint32_t)flag), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	return !(flag & 0x1);
 }
 
@@ -263,7 +263,7 @@ bool TargetIsCEX()
 		return false;
 	}
 
-	showMessageRaw(msgf("lv2_dbg_get_console_type = 1, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	//showMessageRaw(msgf("lv2_dbg_get_console_type = 1, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	return (type == 1);
 }
 
@@ -281,7 +281,7 @@ bool TargetIsDEX()
 		return false;
 	}
 	
-	showMessageRaw(msgf("lv2_dbg_get_console_type = 2, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	//showMessageRaw(msgf("lv2_dbg_get_console_type = 2, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	return (type == 2);
 }
 
@@ -299,7 +299,7 @@ bool TargetIsDECR()
 		return false;
 	}
 	
-	showMessageRaw(msgf("lv2_dbg_get_console_type = 3, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	//showMessageRaw(msgf("lv2_dbg_get_console_type = 3, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	return (type == 3);
 }
 
@@ -829,7 +829,7 @@ int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
 		return 0;
 	}*/
 
-	if (CheckFirmwareVersion())
+	if (CheckFWVersion())
 	{
 		showMessageRaw("You have a compatible firmware version!\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	}
@@ -951,7 +951,7 @@ int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
 // returns 1 on success, 0 on failure
 int InstallStagexOnly()
 {
-	if (CheckFirmwareVersion())
+	if (CheckFWVersion())
 	{
 		showMessageRaw("You have a compatible firmware version!\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	}
@@ -1002,7 +1002,7 @@ int InstallStagexOnly()
 // returns 1 on success, 0 on failure
 int InstallCoreOSOnly(bool doSkipRosCompare, bool doFlashRos1)
 {
-	if (CheckFirmwareVersion())
+	if (CheckFWVersion())
 	{
 		showMessageRaw("You have a compatible firmware version!\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	}
@@ -1093,17 +1093,17 @@ uint8_t GetTarget()
 	if (TargetIsCEX())
 	{
 		target = 1;
-		showMessageRaw("Target is CEX\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+		showMessageRaw("Target is CEX\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	}
 	else if (TargetIsDEX())
 	{
 		target = 2;
-		showMessageRaw("Target is DEX\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+		showMessageRaw("Target is DEX\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	}
 	else if (TargetIsDECR())
 	{
 		target = 3;
-		showMessageRaw("Target is DECR\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+		showMessageRaw("Target is DECR\n", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	}
 	else
 	{
@@ -1130,9 +1130,6 @@ void CompareROSBanks(void)
     if (ros0 == NULL || ros1 == NULL)
     {
         showMessageRaw("malloc fail!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-        //abort();
-
         return;
     }
 

@@ -238,6 +238,10 @@ static void plugin_thread(uint64_t arg)
 	{
 		GetFWVersion();
 	}
+	else if(strcmp(action_thread, "badwdsd_check_fw_version") == 0)	
+	{
+		CheckFWVersion();
+	}
 	else if(strcmp(action_thread, "badwdsd_get_target") == 0)	
 	{
 		GetTarget();

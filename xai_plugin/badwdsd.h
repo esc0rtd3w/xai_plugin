@@ -33,7 +33,7 @@ bool TargetIsDEX();
 bool TargetIsDECR();
 uint8_t GetTarget();
 const char* GetFlashType();
-bool CheckFirmwareVersion();
+bool CheckFWVersion();
 
 void NorWrite(uint64_t offset, const void* data, uint64_t size);
 void NorRead(uint64_t offset, void* data, uint64_t size);
