@@ -18,6 +18,8 @@ struct lv2_storage_device_info {
 	uint8_t res2[8];
 };
 
+void patch_um(void);
+
 bool IsFileExist(const char* path);
 //size_t GetFileSize(FILE* f);
 size_t GetFileSize(const char* path);

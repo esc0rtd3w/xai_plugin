@@ -48,6 +48,32 @@ size_t GetFileSize(const char* path)
     return stat.st_size;
 }
 
+// UM EEPROM
+void patch_um(void)
+{
+	showMessageRaw("Patching Update Manager EEPROM Read\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+    uint64_t pud_er = 0x6000000038000001ULL;
+    lv1_write(0xFC4DC, 8, &pud_er);
+
+	showMessageRaw("Patching Update Manager EEPROM Write\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+    uint64_t pud_ew = 0x6000000038000001ULL;
+    lv1_write(0xFEA38, 8, &pud_ew);
+
+	showMessageRaw("Patching Dispatch Manager\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+	uint32_t pdm1 = 0x60000000;
+	lv1_write(0x16FA64, 4, &pdm1);
+
+	uint32_t pdm2 = 0x38600001;
+	lv1_write(0x16FA88, 4, &pdm2);
+
+	uint8_t pdm3[12] = {0x3b, 0xe0, 0x00, 0x01, 0x9b, 0xe1, 0x00, 0x70, 0x38, 0x60, 0x00, 0x00};
+	lv1_write(0x16FB00, 12, pdm3);
+
+	showMessageRaw("Patching service auth\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+	uint64_t psa = 0x2f80000048000050ULL;
+	lv1_write(0x16FB64, 8, &psa);
+}
+
 double GetFWVersion(void)
 {
     int32_t fd, rc = cellFsOpen("/dev_flash/vsh/etc/version.txt", CELL_FS_O_RDONLY, &fd, NULL, 0);
