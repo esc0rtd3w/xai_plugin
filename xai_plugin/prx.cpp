@@ -254,6 +254,10 @@ static void plugin_thread(uint64_t arg)
 	{
 		IsExploited();
 	}
+	else if(strcmp(action_thread, "badwdsd_patch_update_manager") == 0)	
+	{
+		patch_um();
+	}
 	else if(strcmp(action_thread, "badwdsd_get_bank_indicator") == 0)	
 	{
 		get_bank_indicator();
