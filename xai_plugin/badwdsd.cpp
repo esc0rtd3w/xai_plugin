@@ -1,4 +1,6 @@
 ﻿#include <string.h>
+//#include <stdlib.h>
+//#include <math.h>
 #include <cell/fs/cell_fs_file_api.h>
 //#include <sys/fs_external.h>
 #include <sys/timer.h>
@@ -8,12 +10,34 @@
 #include "log.h"
 #include "hfw_settings.h"
 
+/*bool IsFileExist(const char* path)
+{
+	FILE* f = fopen(path, "rb");
+
+	if (f == NULL)
+		return false;
+
+	fclose(f);
+	return true;
+}*/
+
 bool IsFileExist(const char* path)
 {
     CellFsStat stat;
     int rc = cellFsStat(path, &stat);
     return (rc == CELL_OK);
 }
+
+/*size_t GetFileSize(FILE* f)
+{
+	size_t old = ftell(f);
+
+	fseek(f, 0, SEEK_END);
+	size_t size = ftell(f);
+
+	fseek(f, old, SEEK_SET);
+	return size;
+}*/
 
 size_t GetFileSize(const char* path)
 {
@@ -24,11 +48,12 @@ size_t GetFileSize(const char* path)
     return stat.st_size;
 }
 
-double GetFWVersion()
+double GetFWVersion(void)
 {
     int32_t fd, rc = cellFsOpen("/dev_flash/vsh/etc/version.txt", CELL_FS_O_RDONLY, &fd, NULL, 0);
     if (rc != CELL_OK)
 	{
+		showMessageRaw("Failed to open version.txt", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
         return 0.0;
 	}
 
@@ -38,6 +63,7 @@ double GetFWVersion()
     cellFsClose(fd);
     if (rc != CELL_OK || len < 14)  // need at least "release:0X.XX00:"
 	{
+		showMessageRaw("Failed to read release string from version.txt", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
         return 0.0;
 	}
 
@@ -56,6 +82,63 @@ double GetFWVersion()
 
     return version;
 }
+
+/*double GetFWVersion(void)
+{
+    system_info hwinfo;
+    if (sys_sm_get_system_info(&hwinfo) == 0)
+    {
+        uint32_t major = hwinfo.firmware_version_high;
+        uint32_t low   = hwinfo.firmware_version_low;
+        uint32_t minor = ((low >> 4) & 0xF) * 10 + (low & 0xF);
+
+        double version = major + (minor / 100.0);
+
+        showMessageRaw(msgf("Firmware Version: %u.%02u\n", major, minor), XAI_PLUGIN, TEX_INFO2);
+
+        return version;
+    }
+
+    return 0.0;
+}*/
+
+/*double GetFWVersion(void)
+{
+	FILE *fp;
+	fp = fopen("/dev_flash/vsh/etc/version.txt", "rb");
+
+	if (fp != NULL)
+	{
+		char bufs[1024];
+		double fwversion = 0.0;
+		fgets(bufs, 1024, fp);
+		fclose(fp);
+
+		fwversion = strtod(bufs + 8, NULL);
+	}
+}*/
+
+/*double GetFWVersion(void)
+{
+    double fwVersion = 0.0;
+    FILE* fp = fopen("/dev_flash/vsh/etc/version.txt", "rb");
+    if (!fp) return 0.0;
+
+    char bufs[64];
+    if (fgets(bufs, sizeof(bufs), fp) != NULL)
+    {
+        char* p = bufs + 8;
+
+        double raw = atof(p);
+
+        unsigned tmp = (unsigned)(raw * 100.0 + 0.5f);
+        fwVersion = (double)tmp / 100.0;
+    }
+
+    fclose(fp);
+    return fwVersion;
+}*/
+
 
 bool CheckFWVersion()
 {
@@ -631,6 +714,165 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 	showMessageRaw("NorRead() done.\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 }
 
+/*void BadWDSD_Write_Stagex()
+{
+	notify("BadWDSD_Write_Stagex()\n");
+
+	if (!FlashIsNor())
+	{
+		notify("Flash is not nor!!!\n");
+		return;
+	}
+
+	FILE *f = NULL;
+
+	if (f == NULL)
+	{
+		notify("Loading /app_home/Stagex.bin\n");
+
+		f = fopen("/app_home/Stagex.bin", "rb");
+
+		if (f == NULL)
+			notify("Not found\n");
+	}
+
+	if (f == NULL)
+	{
+		notify("Loading /dev_hdd0/Stagex.bin\n");
+
+		f = fopen("/dev_hdd0/Stagex.bin", "rb");
+
+		if (f == NULL)
+			notify("Not found\n");
+	}
+
+	if (f == NULL)
+	{
+		notify("Stagex.bin not found!\n");
+		return;
+	}
+
+	size_t size = GetFileSize(f);
+	notify("size = %lu\n", size);
+
+	void *code = malloc(size);
+	fread(code, 1, size, f);
+
+	fclose(f);
+
+	notify("code = 0x%lx\n", (uint64_t)code);
+
+	if (size > (48 * 1024))
+	{
+		notify("size is too big!!!\n");
+		return;
+	}
+
+	notify("Writing to flash...\n");
+	// lv1_write(0x2401F031000, size, code);
+	NorWrite(0x31000, code, size);
+
+	{
+		notify("0x%lx\n", lv1_peek(0x2401F0002000ULL));
+		notify("0x%lx\n", lv1_peek(0x2401F0310000ULL));
+	}
+
+	free(code);
+	notify("BadWDSD_Write_Stagex() done,\n");
+}*/
+
+/*void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
+{
+	notify("BadWDSD_Write_ros()\n");
+
+	if (!FlashIsNor())
+	{
+		notify("Flash is not nor!!!\n");
+		return;
+	}
+
+	FILE *f = NULL;
+
+	if (f == NULL)
+	{
+		notify("Loading /app_home/CoreOS.bin\n");
+
+		f = fopen("/app_home/CoreOS.bin", "rb");
+
+		if (f == NULL)
+			notify("Not found\n");
+	}
+
+	if (f == NULL)
+	{
+		notify("Loading /dev_hdd0/CoreOS.bin\n");
+
+		f = fopen("/dev_hdd0/CoreOS.bin", "rb");
+
+		if (f == NULL)
+			notify("Not found\n");
+	}
+
+	if (f == NULL)
+	{
+		notify("CoreOS.bin not found!\n");
+		return;
+	}
+
+	size_t size = GetFileSize(f);
+	notify("size = %lu\n", size);
+
+	void *code = malloc(size);
+	fread(code, 1, size, f);
+
+	fclose(f);
+
+	notify("code = 0x%lx\n", (uint64_t)code);
+
+	if (size > 0x700000)
+	{
+		notify("size is too big!!!\n");
+		return;
+	}
+
+	if (compare)
+	{
+		notify("Comparing ros...\n");
+
+		void *ros0 = malloc(0x700000);
+		void *ros1 = malloc(0x700000);
+
+		if (ros0 == NULL || ros1 == NULL)
+		{
+			notify("malloc fail!\n");
+			return;
+		}
+
+		NorRead(0x0C0000, ros0, 0x700000);
+		NorRead(0x7C0000, ros1, 0x700000);
+
+		if (memcmp(ros0, ros1, 0x700000))
+		{
+			notify("ros compare fail!, please reinstall same firmware twice!\n");
+			return;
+		}
+
+		free(ros1);
+		free(ros0);
+	}
+
+	//notify("Writing to flash (%s)...\n", doFlashRos1 ? "ros1" : "ros0");
+	NorWrite(doFlashRos1 ? 0x7C0000 : 0x0C0000, code, size);
+
+	{
+		notify("0x%lx\n", lv1_peek(0x2401F0002000ULL));
+		notify("0x%lx\n", lv1_peek(0x2401F0310000ULL));
+	}
+
+	free_(code);
+	notify("BadWDSD_Write_ros() done.\n");
+}*/
+
 void BadWDSD_Write_Stagex()
 {
     showMessageRaw("BadWDSD_Write_Stagex()\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
@@ -827,7 +1069,7 @@ int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
 
 		//abort();
 		return 0;
-	}*/
+	}
 
 	if (CheckFWVersion())
 	{
