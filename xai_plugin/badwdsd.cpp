@@ -1063,7 +1063,7 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
 // returns 1 on success, 0 on failure
 int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
 {
-	/*if (GetFWVersion() < 4.70)
+	if (GetFWVersion() < 4.70)
 	{
 		showMessageRaw("firmware not supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 
@@ -1123,8 +1123,8 @@ int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
 		return 0;
 	}
 
-	showMessageRaw("DEBUG: Writing Stagex will begin in 30 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
-	sys_timer_sleep(30);// DEBUG sleep
+	showMessageRaw("DEBUG: Writing Stagex will begin in 10 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+	sys_timer_sleep(10);// DEBUG sleep
 
     if (!doLegacy)
     {
@@ -1152,8 +1152,8 @@ int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
             return 0;
         }
 		
-		showMessageRaw("DEBUG: Writing CoreOS will begin in 30 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
-		sys_timer_sleep(30);// DEBUG sleep
+		showMessageRaw("DEBUG: Writing CoreOS will begin in 10 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+		sys_timer_sleep(10);// DEBUG sleep
 
         //BadWDSD_Write_ros(false, false);
 		showMessageRaw("DEBUG: BadWDSD_Write_ros() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
@@ -1224,8 +1224,8 @@ int InstallStagexOnly()
 
 	sys_timer_sleep(3);// DEBUG sleep
 
-    showMessageRaw("DEBUG: Writing Stagex will begin in 30 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
-    sys_timer_sleep(30);
+    showMessageRaw("DEBUG: Writing Stagex will begin in 10 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+    sys_timer_sleep(10);
 
     showMessageRaw("Installing Stagex.bin...\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
     //BadWDSD_Write_Stagex();
@@ -1290,8 +1290,8 @@ int InstallCoreOSOnly(bool doSkipRosCompare, bool doFlashRos1)
         return 0;
     }
 
-    showMessageRaw("DEBUG: Writing CoreOS will begin in 30 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
-    sys_timer_sleep(30);
+    showMessageRaw("DEBUG: Writing CoreOS will begin in 10 seconds\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+    sys_timer_sleep(10);
 
     //BadWDSD_Write_ros(!doSkipRosCompare, doFlashRos1);
 	showMessageRaw("DEBUG: BadWDSD_Write_ros() is disabled for testing\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
