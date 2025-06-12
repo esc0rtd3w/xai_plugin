@@ -74,59 +74,16 @@ void patch_um(void)
 	lv1_write(0x16FB64, 8, &psa);
 }
 
-double GetFWVersion(void)
+void patch_um_eeprom(void)
 {
-    int32_t fd, rc = cellFsOpen("/dev_flash/vsh/etc/version.txt", CELL_FS_O_RDONLY, &fd, NULL, 0);
-    if (rc != CELL_OK)
-	{
-		showMessageRaw("Failed to open version.txt", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-        return 0.0;
-	}
+	showMessageRaw("Patching Update Manager EEPROM Read\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+    uint64_t pud_er = 0x6000000038000001ULL;
+    lv1_write(0xFC4DC, 8, &pud_er);
 
-    char bufs[64];
-    uint64_t len = 0;
-    rc = cellFsRead(fd, bufs, sizeof(bufs) - 1, &len);
-    cellFsClose(fd);
-    if (rc != CELL_OK || len < 14)  // need at least "release:0X.XX00:"
-	{
-		showMessageRaw("Failed to read release string from version.txt", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-        return 0.0;
-	}
-
-    bufs[len] = '\0';
-
-    // buf layout: "release:0X.XX00:"
-    char* p = bufs + 8;  // points at '0'
-    int ip = (p[0] - '0') * 10 + (p[1] - '0');
-    int fp = (p[3] - '0') * 10 + (p[4] - '0');
-
-	double version = (double)ip + ((double)fp / 100.0);
-
-    //char msg[64];
-    //vsh_sprintf(msg, "Firmware Version: %.2f\n", version);
-    showMessageRaw(msgf("Firmware Version: %.2f\n", version), (char *)XAI_PLUGIN, (char *)TEX_INFO2);
-
-    return version;
+	showMessageRaw("Patching Update Manager EEPROM Write\n", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
+    uint64_t pud_ew = 0x6000000038000001ULL;
+    lv1_write(0xFEA38, 8, &pud_ew);
 }
-
-/*double GetFWVersion(void)
-{
-    system_info hwinfo;
-    if (sys_sm_get_system_info(&hwinfo) == 0)
-    {
-        uint32_t major = hwinfo.firmware_version_high;
-        uint32_t low   = hwinfo.firmware_version_low;
-        uint32_t minor = ((low >> 4) & 0xF) * 10 + (low & 0xF);
-
-        double version = major + (minor / 100.0);
-
-        showMessageRaw(msgf("Firmware Version: %u.%02u\n", major, minor), XAI_PLUGIN, TEX_INFO2);
-
-        return version;
-    }
-
-    return 0.0;
-}*/
 
 /*double GetFWVersion(void)
 {
@@ -144,27 +101,63 @@ double GetFWVersion(void)
 	}
 }*/
 
-/*double GetFWVersion(void)
+double GetFWVersion(void)
 {
-    double fwVersion = 0.0;
-    FILE* fp = fopen("/dev_flash/vsh/etc/version.txt", "rb");
-    if (!fp) return 0.0;
-
     char bufs[64];
-    if (fgets(bufs, sizeof(bufs), fp) != NULL)
+    double version = 0.0;
+
+    CellFsStat stat;
+    int32_t rc = cellFsStat("/dev_flash/vsh/etc/version.txt", &stat);
+    showMessageRaw(msgf("cellFsStat() rc = 0x%08X, size = %llu", (uint32_t)rc, stat.st_size), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+    if (rc != CELL_OK)
     {
-        char* p = bufs + 8;
-
-        double raw = atof(p);
-
-        unsigned tmp = (unsigned)(raw * 100.0 + 0.5f);
-        fwVersion = (double)tmp / 100.0;
+        showMessageRaw("Failed to stat version.txt", (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+        return 0.0;
     }
 
-    fclose(fp);
-    return fwVersion;
-}*/
+    int32_t fd;
+    rc = cellFsOpen("/dev_flash/vsh/etc/version.txt", CELL_FS_O_RDONLY, &fd, NULL, 0);
+    showMessageRaw(msgf("cellFsOpen() rc = 0x%08X", (uint32_t)rc), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+    if (rc != CELL_OK)
+    {
+        showMessageRaw("Failed to open version.txt", (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+        return 0.0;
+    }
 
+    uint64_t to_read = stat.st_size < (sizeof(bufs) - 1) ? stat.st_size : (sizeof(bufs) - 1);
+    uint64_t len = 0;
+    rc = cellFsRead(fd, bufs, to_read, &len);
+    cellFsClose(fd);
+    showMessageRaw(msgf("cellFsRead() rc = 0x%08X, bytes = %llu", (uint32_t)rc, len), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+    if (rc != CELL_OK || len < 14)  // need at least "release:0X.XX00:"
+    {
+        showMessageRaw("Failed to read release string from version.txt", (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+        return 0.0;
+    }
+
+    bufs[len] = '\0';
+    showMessageRaw(msgf("Raw file contents: %s", bufs), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+
+    char* p = bufs + 8;  // skip "release:"
+    showMessageRaw(msgf("Parsing at '%c%c.%c%c'", p[0], p[1], p[3], p[4]), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+
+    int ip = (p[0] - '0') * 10 + (p[1] - '0');
+    int fp = (p[3] - '0') * 10 + (p[4] - '0');
+    version = (double)ip + ((double)fp / 100.0);
+
+    if (version == 0.0)
+    {
+        showMessageRaw("Failed to get firmware version", (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+    }
+    else
+    {
+        char msg[64];
+        vsh_sprintf(msg, "Firmware Version: %.2f", version);
+        showMessageRaw(msg, (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
+    }
+
+    return version;
+}
 
 bool CheckFWVersion()
 {

@@ -258,6 +258,10 @@ static void plugin_thread(uint64_t arg)
 	{
 		patch_um();
 	}
+	else if(strcmp(action_thread, "badwdsd_patch_update_manager_eeprom_rw") == 0)	
+	{
+		patch_um_eeprom();
+	}
 	else if(strcmp(action_thread, "badwdsd_get_bank_indicator") == 0)	
 	{
 		get_bank_indicator();

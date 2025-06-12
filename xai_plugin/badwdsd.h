@@ -19,6 +19,7 @@ struct lv2_storage_device_info {
 };
 
 void patch_um(void);
+void patch_um_eeprom(void);
 
 bool IsFileExist(const char* path);
 //size_t GetFileSize(FILE* f);
