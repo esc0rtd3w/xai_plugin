@@ -24,6 +24,7 @@
 #include "savegames.h"
 #include "cex2dex.h"
 #include "eeprom.h"
+#include "rsx.h"
 
 
 extern "C" int _videorec_export_function_video_rec(void);

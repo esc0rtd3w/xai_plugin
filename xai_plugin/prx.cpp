@@ -21,6 +21,7 @@
 // PS3HEN
 #include "hen.h"
 #include "badwdsd.h"
+#include "rsx.h"
 
 #define XAI_VERSION "XAI Version 1.20"
 
