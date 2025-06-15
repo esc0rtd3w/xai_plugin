@@ -24,8 +24,12 @@
 #include "savegames.h"
 #include "cex2dex.h"
 #include "eeprom.h"
-#include "rsx.h"
 
+// PS3HEN
+#include "hen.h"
+#include "badwdsd.h"
+#include "rsx.h"
+#include "lv1.h"
 
 extern "C" int _videorec_export_function_video_rec(void);
 extern "C" int _videorec_export_function_klicensee(void);

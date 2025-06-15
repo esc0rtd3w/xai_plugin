@@ -9,6 +9,8 @@
 #include "gccpch.h"
 #include "log.h"
 #include "hfw_settings.h"
+#include "lv1.h"
+#include "hen.h"
 
 /*bool IsFileExist(const char* path)
 {
@@ -1409,3 +1411,97 @@ void CompareROSBanks(void)
     free_(ros0);
 }
 
+
+// XMB Options
+
+// BadHTAB Testing
+void badhtab_copy_log()
+{
+	read_write_generic_notify("/dev_hdd0/BadHTAB.txt", "/dev_usb000/BadHTAB.txt");
+}
+
+void badhtab_toggle_glitcher_test()
+{
+	toggle_generic("/dev_hdd0/BadHTAB_doGlitcherTest.txt", "Glitcher Test", 1);
+}
+
+void badhtab_toggle_skip_stage1()
+{
+	toggle_generic("/dev_hdd0/BadHTAB_doSkipStage1.txt", "Skip Stage 1", 1);
+}
+
+/*void badhtab_toggle_skip_stage_cfw()
+{
+	toggle_generic("/dev_hdd0/BadHTAB_doStage1_CFW.txt", "Skip Stage CFW", 1);
+}*/
+
+void badhtab_toggle_skip_stage2()
+{
+	toggle_generic("/dev_hdd0/BadHTAB_doSkipStage2.txt", "Skip Stage 2", 1);
+}
+
+void badhtab_toggle_skip_patch_more_lv1()
+{
+	toggle_generic("/dev_hdd0/BadHTAB_doSkipPatchMoreLv1.txt", "Skip Patch More LV1", 1);
+}
+
+void badhtab_toggle_lv1_dump()
+{
+	toggle_generic("/dev_hdd0/BadHTAB_doDumpLv1.txt", "BadHTAB LV1 Dump", 1);
+}
+
+void badhtab_toggle_lv1_dump_240m()
+{
+	toggle_generic("/dev_hdd0/BadHTAB_doDumpLv1_240M.txt", "BadHTAB LV1 Dump 240M", 1);
+}
+
+void badhtab_toggle_otheros()
+{
+	toggle_generic("/dev_hdd0/BadHTAB_doOtherOS.txt", "BadHTAB OtherOS", 1);
+}
+
+void badhtab_toggle_lv2_kernel_self()
+{
+	toggle_generic("/dev_hdd0/BadHTAB_doLoadLv2Kernel_Self.txt", "BadHTAB LV2 Kernel SELF", 1);
+}
+
+void badhtab_toggle_lv2_kernel_fself()
+{
+	toggle_generic("/dev_hdd0/BadHTAB_doLoadLv2Kernel_Fself.txt", "BadHTAB LV2 Kernel FSELF", 1);
+}
+
+// BadWDSD Testing
+void badwdsd_copy_log()
+{
+	read_write_generic_notify("/dev_hdd0/BadWDSD.txt", "/dev_usb000/BadWDSD.txt");
+}
+
+void badwdsd_toggle_lv2_kernel_fself()
+{
+	toggle_generic("/dev_hdd0/BadWDSD_doLoadLv2Kernel_Fself.txt", "BadWDSD LV2 Kernel FSELF", 1);
+}
+
+void badwdsd_toggle_lv2_kernel_zfself()
+{
+	toggle_generic("/dev_hdd0/BadWDSD_doLoadLv2Kernel_ZFself.txt", "BadWDSD LV2 Kernel ZFSELF", 1);
+}
+
+void badwdsd_toggle_otheros_fself()
+{
+	toggle_generic("/dev_hdd0/BadWDSD_doOtherOS_Fself.txt", "BadWDSD OtherOS FSELF", 1);
+}
+
+void badwdsd_toggle_otheros_zfself()
+{
+	toggle_generic("/dev_hdd0/BadWDSD_doOtherOS_ZFself.txt", "BadWDSD OtherOS ZFSELF", 1);
+}
+
+void badwdsd_toggle_skip_ros_compare()
+{
+	toggle_generic("/dev_hdd0/BadWDSD_doSkipRosCompare.txt", "BadWDSD Skip ROS Compare", 1);
+}
+
+void badwdsd_toggle_flash_ros1()
+{
+	toggle_generic("/dev_hdd0/BadWDSD_doFlashRos1.txt", "BadWDSD Reflash ROS1", 1);
+}

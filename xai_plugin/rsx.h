@@ -2,7 +2,7 @@
 #define __RSX_H__
 
 #include "hen.h"
-
+#include "lv1.h"
 
 // RSX Overclocking
 void get_rsx_clock_speeds(void);

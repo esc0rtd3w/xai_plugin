@@ -2,6 +2,7 @@
 #include "hfw_settings.h"
 #include "hen.h"
 #include "badwdsd.h"
+#include "gccpch.h"
 #include "functions.h"
 #include "log.h"
 

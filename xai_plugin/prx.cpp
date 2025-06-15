@@ -22,6 +22,7 @@
 #include "hen.h"
 #include "badwdsd.h"
 #include "rsx.h"
+#include "lv1.h"
 
 #define XAI_VERSION "XAI Version 1.20"
 

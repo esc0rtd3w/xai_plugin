@@ -26,8 +26,33 @@ bool IsFileExist(const char* path);
 size_t GetFileSize(const char* path);
 double GetFWVersion(void);
 
+// BadHTAB Testing
+void badhtab_copy_log();
+void badhtab_toggle_glitcher_test();
+void badhtab_toggle_skip_stage1();
+//void badhtab_toggle_skip_stage_cfw();
+void badhtab_toggle_skip_stage2();
+void badhtab_toggle_skip_patch_more_lv1();
+void badhtab_toggle_lv1_dump();
+void badhtab_toggle_lv1_dump_240m();
+void badhtab_toggle_otheros();
+void badhtab_toggle_lv2_kernel_self();
+void badhtab_toggle_lv2_kernel_fself();
+
+// BadWDSD Testing
+void badwdsd_copy_log();
+void badwdsd_toggle_lv2_kernel_fself();
+void badwdsd_toggle_lv2_kernel_zfself();
+void badwdsd_toggle_otheros_fself();
+void badwdsd_toggle_otheros_zfself();
+void badwdsd_toggle_skip_ros_compare();
+void badwdsd_toggle_flash_ros1();
+
 void lv1_read(uint64_t addr, uint64_t size, void *out_Buf);
 void lv1_write(uint64_t addr, uint64_t size, const void *in_Buf);
+
+//static inline uint64_t lv1_read2(uint64_t addr);
+//static inline void lv1_write2(uint64_t addr, uint64_t value);
 
 uint8_t get_bank_indicator();
 void set_bank_indicator(uint8_t value);
