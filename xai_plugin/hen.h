@@ -32,7 +32,11 @@ int poke_vsh(uint64_t address, char *buf, int size);
 void reset_psn_patches();
 void psn_patch(uint32_t paddr, uint32_t pbytes, bool reset);
 
+void check_temperature();
+void dump_idps();
 void dump_psid();
+int dump_lv1();
+int dump_lv2();
 
 // HV dump region functions
 int dump_lv0_code();

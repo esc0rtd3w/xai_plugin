@@ -225,6 +225,42 @@ int getHexInput(const char *prompt, uint64_t *outValue)
     }
 }*/
 
+void check_temperature()
+{
+	uint32_t temp_cpu_c = 0, temp_rsx_c = 0;
+	uint32_t temp_cpu_f = 0, temp_rsx_f = 0;
+
+	// Enabling sys_game_get_temperature() in 4.90 CEX
+	pokeq32(0x800000000000C6A4ULL, 0x38600000);
+
+	sys_game_get_temperature(0, &temp_cpu_c);
+    sys_game_get_temperature(1, &temp_rsx_c);
+
+	temp_cpu_f = celsius_to_fahrenheit(&temp_cpu_c);
+	temp_rsx_f = celsius_to_fahrenheit(&temp_rsx_c);
+
+	if(!temp_cpu_c || !temp_rsx_c || !temp_cpu_f || !temp_rsx_f)
+		showMessageRaw(msgf("Unable to get temperature values"), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+	else
+		showMessageRaw(msgf("[CPU: %uC] - [RSX: %uC]\n[CPU: %uF] - [RSX: %uF]", (int)temp_cpu_c, (int)temp_rsx_c, (int)temp_cpu_f, (int)temp_rsx_f), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
+}
+
+void dump_idps()
+{
+	uint8_t idps[0x10];
+	memset(idps, 0, 0x10);
+	int ret = sys_ss_get_console_id(idps);
+	if (ret == EPERM)
+		ret = cellSsAimGetDeviceId(idps);
+	if (ret != CELL_OK)
+	{
+		showMessageRaw(msgf("IDPS Dump failed: %x\n", ret), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+		return;
+	}
+	log_key("IDPS", idps);
+	showMessageRaw(msgf("IDPS Dumped!\n%08X%08X\n%08X%08X", *(int*)idps, *((int*)idps + 1), *((int*)idps + 2), *((int*)idps + 3)), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
+}
+
 void dump_psid()
 {
 	uint8_t psid[0x10];
@@ -236,7 +272,199 @@ void dump_psid()
 		return;
 	}
 	log_key("PSID", psid);
-	showMessageRaw(msgf("PSID Dumped!\n%08X%08X\n%08X%08X", *(int*)psid, *((int*)psid + 1), *((int*)psid + 2), *((int*)psid + 3), false), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
+	showMessageRaw(msgf("PSID Dumped!\n%08X%08X\n%08X%08X", *(int*)psid, *((int*)psid + 1), *((int*)psid + 2), *((int*)psid + 3)), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
+}
+
+int dump_lv2()
+{
+	int final_offset;
+	int mem = 0, max_offset = 0x40000;
+	int fd, fseek_offset = 0, start_offset = 0;
+
+	char usb[120], dump_file_path[120], lv_file[120];
+
+	uint8_t platform_info[0x18];
+	uint64_t nrw, seek, offset_dumped;
+	CellFsStat st;	
+
+	// Check if CFW Syscalls are disabled
+	if(peekq(0x8000000000363BE0ULL) == 0xFFFFFFFF80010003ULL)
+	{
+		showMessageRaw("Syscalls are disabled", (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		return 1;
+	}
+	
+    system_call_1(387, (uint64_t)platform_info);
+
+	final_offset = 0x800000ULL;	
+
+	vsh_sprintf(lv_file, LV2_DUMP, platform_info[0], platform_info[1], platform_info[2] >> 4);	
+	vsh_sprintf(dump_file_path, "%s/%s", (int)TMP_FOLDER, (int)lv_file);
+
+	for(int i = 0; i < 127; i++)
+	{				
+		vsh_sprintf(usb, "/dev_usb%03d", i, NULL);
+
+		if(!cellFsStat(usb, &st))
+		{
+			vsh_sprintf(dump_file_path, "%s/%s", (int)usb, (int)lv_file);
+			break;
+		}
+	}
+
+	if(cellFsOpen(dump_file_path, CELL_FS_O_CREAT | CELL_FS_O_TRUNC | CELL_FS_O_RDWR, &fd, 0, 0) != SUCCEEDED)
+	{
+		showMessageRaw("An error occurred while dumping LV2", (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+		return 1;
+	}
+
+	cellFsChmod(dump_file_path, 0666);
+
+	showMessageRaw("Dumping LV2, please wait...", (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+
+	// Quickest method to dump LV2 and LV1 through xai_plugin
+	// Default method will take at least two minutes to dump LV2, and even more for LV1
+	uint8_t *dump = (uint8_t *)malloc_(0x40000);
+	memset(dump, 0, 0x40000);			
+
+	for(uint64_t offset = start_offset; offset < max_offset; offset += 8)
+	{
+		offset_dumped = peekq(0x8000000000000000ULL + offset);
+
+		memcpy(dump + mem, &offset_dumped, 8);
+
+		mem += 8;
+
+		if(offset == max_offset - 8)
+		{
+			//cellFsLseek(fd, fseek_offset, SEEK_SET, &seek);
+			if(cellFsWrite(fd, dump, 0x40000, &nrw) != SUCCEEDED)
+			{
+				free_(dump);				
+				cellFsClose(fd);
+				cellFsUnlink(dump_file_path);
+				showMessageRaw("An error occurred while dumping LV2", (char*)XAI_PLUGIN, (char*)TEX_ERROR);		
+
+				return 1;
+			}
+
+			// Done dumping
+			if(max_offset == final_offset)
+				break;
+
+			fseek_offset += 0x40000;
+			memset(dump, 0, 0x40000);
+			mem = 0;
+
+			start_offset = start_offset + 0x40000;
+			max_offset = max_offset + 0x40000;
+		}
+	}
+
+	free_(dump);
+	cellFsClose(fd);
+
+	showMessageRaw(msgf("LV2 dumped in\n%s", dump_file_path), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
+	buzzer(SINGLE_BEEP);
+
+	return 0;
+}
+
+
+int dump_lv1()
+{
+    int final_offset;
+    int mem = 0, max_offset = 0x40000;
+    int fd, fseek_offset = 0, start_offset = 0;
+
+    char usb[120], dump_file_path[120], lv_file[120];
+
+    uint8_t platform_info[0x18];
+    uint64_t nrw, seek, offset_dumped;
+    CellFsStat st;  
+
+    // Check if CFW Syscalls are disabled
+    if(peekq(0x8000000000363BE0ULL) == 0xFFFFFFFF80010003ULL)
+    {
+        showMessageRaw("Syscalls are disabled", (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+        return 1;
+    }
+    
+    system_call_1(387, (uint64_t)platform_info);
+
+    final_offset = 0x1000000ULL;
+
+    vsh_sprintf(lv_file, LV1_DUMP, platform_info[0], platform_info[1], platform_info[2] >> 4);  
+    vsh_sprintf(dump_file_path, "%s/%s", (int)TMP_FOLDER, (int)lv_file);
+
+    for(int i = 0; i < 127; i++)
+    {                
+        vsh_sprintf(usb, "/dev_usb%03d", i, NULL);
+
+        if(!cellFsStat(usb, &st))
+        {
+            vsh_sprintf(dump_file_path, "%s/%s", (int)usb, (int)lv_file);
+            break;
+        }
+    }
+
+    if(cellFsOpen(dump_file_path, CELL_FS_O_CREAT | CELL_FS_O_TRUNC | CELL_FS_O_RDWR, &fd, 0, 0) != SUCCEEDED)
+    {
+        showMessageRaw("An error occurred while dumping LV1", (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+        return 1;
+    }
+
+    cellFsChmod(dump_file_path, 0666);
+
+    showMessageRaw("Dumping LV1, please wait...", (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+
+    // Quickest method to dump LV2 and LV1 through xai_plugin
+    // Default method will take at least two minutes to dump LV2, and even more for LV1
+    uint8_t *dump = (uint8_t *)malloc_(0x40000);
+    memset(dump, 0, 0x40000);            
+
+    for(uint64_t offset = start_offset; offset < max_offset; offset += 8)
+    {
+        // Use lv1_read to fetch data
+        lv1_read(0x8000000000000000ULL + offset, 8, &offset_dumped);
+
+        memcpy(dump + mem, &offset_dumped, 8);
+
+        mem += 8;
+
+        if(offset == max_offset - 8)
+        {
+            //cellFsLseek(fd, fseek_offset, SEEK_SET, &seek);
+            if(cellFsWrite(fd, dump, 0x40000, &nrw) != SUCCEEDED)
+            {
+                free_(dump);                
+                cellFsClose(fd);
+                cellFsUnlink(dump_file_path);
+                showMessageRaw("An error occurred while dumping LV1", (char*)XAI_PLUGIN, (char*)TEX_ERROR);        
+
+                return 1;
+            }
+
+            // Done dumping
+            if(max_offset == final_offset)
+                break;
+
+            fseek_offset += 0x40000;
+            memset(dump, 0, 0x40000);
+            mem = 0;
+
+            start_offset = start_offset + 0x40000;
+            max_offset = max_offset + 0x40000;
+        }
+    }
+
+    free_(dump);
+    cellFsClose(fd);
+
+    showMessageRaw(msgf("LV1 dumped in\n%s", dump_file_path), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
+    buzzer(SINGLE_BEEP);
+
+    return 0;
 }
 
 void write_toggle(char* path_to_file, char* message)
@@ -549,7 +777,7 @@ int dump_full_ram() {
 
     uint8_t *buffer = (uint8_t *)malloc_(CHUNK_SIZE);
     if (!buffer) {
-        showMessageRaw("Memory allocation error", (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+        showMessageRaw("Memory allocation error", (char*)XAI_PLUGIN, (char*)TEX_ERROR);
         cellFsClose(fd);
         return 1;
     }
@@ -562,7 +790,7 @@ int dump_full_ram() {
         lv1_read(0x8000000000000000ULL + offset, CHUNK_SIZE, buffer);
 
         if (cellFsWrite(fd, buffer, CHUNK_SIZE, &nrw) != CELL_FS_SUCCEEDED) {
-            showMessageRaw(msgf("Error writing dump at offset 0x%llX", offset), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+            showMessageRaw(msgf("Error writing dump at offset 0x%llX", offset), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
             free_(buffer);
             cellFsClose(fd);
             return 1;
@@ -574,7 +802,7 @@ int dump_full_ram() {
 
     free_(buffer);
     cellFsClose(fd);
-    showMessageRaw(msgf("Full RAM dump complete:\n%s", dump_file_path), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+    showMessageRaw(msgf("Full RAM dump complete:\n%s", dump_file_path), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
     buzzer(SINGLE_BEEP);
     return 0;
 }
@@ -667,12 +895,12 @@ bool test_lv1_peek()
 
 	if (val != 0 && val != 0xFFFFFFFFFFFFFFFFULL)
 	{
-		showMessageRaw(msgf("lv1_peek() success\naddr: 0x%016llX\nval: 0x%016llX", addr, val), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		showMessageRaw(msgf("lv1_peek() success\naddr: 0x%016llX\nval: 0x%016llX", addr, val), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 		return true;
 	}
 	else
 	{
-		showMessageRaw(msgf("lv1_peek() failed\naddr: 0x%016llX\nval: 0x%016llX", addr, val), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		showMessageRaw(msgf("lv1_peek() failed\naddr: 0x%016llX\nval: 0x%016llX", addr, val), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 		return false;
 	}
 }
@@ -685,12 +913,12 @@ bool test_lv1_peek32()
 
 	if (val != 0 && val != 0xFFFFFFF)
 	{
-		showMessageRaw(msgf("lv1_peek32() success\naddr: 0x%08X\nval: 0x%08X", addr, val), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		showMessageRaw(msgf("lv1_peek32() success\naddr: 0x%08X\nval: 0x%08X", addr, val), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 		return true;
 	}
 	else
 	{
-		showMessageRaw(msgf("lv1_peek32() failed\naddr: 0x%08X\nval: 0x%08X", addr, val), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		showMessageRaw(msgf("lv1_peek32() failed\naddr: 0x%08X\nval: 0x%08X", addr, val), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 		return false;
 	}
 }
@@ -710,12 +938,12 @@ bool test_lv1_poke()
 
 	if (verify == patch)
 	{
-		showMessageRaw(msgf("lv1_poke() success\naddr: 0x%016llX\npatch: 0x%016llX\noriginal: 0x%016llX", addr, patch, original), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		showMessageRaw(msgf("lv1_poke() success\naddr: 0x%016llX\npatch: 0x%016llX\noriginal: 0x%016llX", addr, patch, original), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 		return true;
 	}
 	else
 	{
-		showMessageRaw(msgf("lv1_poke() failed\naddr: 0x%016llX\npatch: 0x%016llX\noriginal: 0x%016llX", addr, patch, original), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		showMessageRaw(msgf("lv1_poke() failed\naddr: 0x%016llX\npatch: 0x%016llX\noriginal: 0x%016llX", addr, patch, original), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 		return false;
 	}
 }
@@ -736,12 +964,12 @@ bool test_lv1_poke32()
 
 	if (verify == patch)
 	{
-		showMessageRaw(msgf("lv1_poke32() success\naddr: 0x%08X\npatch: 0x%08X\noriginal: 0x%08X", addr, patch, original), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		showMessageRaw(msgf("lv1_poke32() success\naddr: 0x%08X\npatch: 0x%08X\noriginal: 0x%08X", addr, patch, original), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 		return true;
 	}
 	else
 	{
-		showMessageRaw(msgf("lv1_poke32() failed\naddr: 0x%08X\npatch: 0x%08X\noriginal: 0x%08X", addr, patch, original), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		showMessageRaw(msgf("lv1_poke32() failed\naddr: 0x%08X\npatch: 0x%08X\noriginal: 0x%08X", addr, patch, original), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 		return false;
 	}
 }
@@ -764,14 +992,14 @@ int unmask_bootldr()
 
     if (patch1_ok && patch2_ok)
     {
-        showMessageRaw(msgf("Apply LV1 Patch 1: Unmask bootldr Success at 0x%016llX", lv1_peek(addr1)), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
-        showMessageRaw(msgf("Apply LV1 Patch 2: Unmask bootldr Success at 0x%016llX", lv1_peek(addr2)), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+        showMessageRaw(msgf("Apply LV1 Patch 1: Unmask bootldr Success at 0x%016llX", lv1_peek(addr1)), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
+        showMessageRaw(msgf("Apply LV1 Patch 2: Unmask bootldr Success at 0x%016llX", lv1_peek(addr2)), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
         return 0;
     }
     else
     {
-        showMessageRaw(msgf("Apply LV1 Patch Failed at 0x%016llX\nval:0x%016llX", addr1, lv1_peek(addr1)), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
-        showMessageRaw(msgf("Apply LV1 Patch Failed at 0x%016llX\nval:0x%016llX", addr2, lv1_peek(addr2)), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+        showMessageRaw(msgf("Apply LV1 Patch Failed at 0x%016llX\nval:0x%016llX", addr1, lv1_peek(addr1)), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+        showMessageRaw(msgf("Apply LV1 Patch Failed at 0x%016llX\nval:0x%016llX", addr2, lv1_peek(addr2)), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
         return 1;
     }
 }
@@ -788,18 +1016,18 @@ int toggle_lv1_patch(const char* name, uint64_t addr, uint64_t ovalue, uint64_t 
 		verify = lv1_peek(addr);
 		if (verify == pvalue)
 		{
-			showMessageRaw(msgf("Apply LV1 Patch: %s Success\naddr: 0x%016llX\ncvalue: 0x%016llX\nverify: 0x%016llX", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+			showMessageRaw(msgf("Apply LV1 Patch: %s Success\naddr: 0x%016llX\ncvalue: 0x%016llX\nverify: 0x%016llX", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 			return 0;
 		}
 		else
 		{
-			showMessageRaw(msgf("Apply LV1 Patch: %s Failed\naddr: 0x%016llX\ncvalue: 0x%08X\nverify: 0x%016llX", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+			showMessageRaw(msgf("Apply LV1 Patch: %s Failed\naddr: 0x%016llX\ncvalue: 0x%08X\nverify: 0x%016llX", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 			return 1;
 		}
 	}
 	else
 	{
-		//showMessageRaw(msgf("Expected Original Value Not Found\naddr: 0x%016llX\ncvalue: 0x%08X\npvalue: 0x%016llX", (char*)name, addr, cvalue, ovalue), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		//showMessageRaw(msgf("Expected Original Value Not Found\naddr: 0x%016llX\ncvalue: 0x%08X\npvalue: 0x%016llX", (char*)name, addr, cvalue, ovalue), (char*)XAI_PLUGIN, (char*)TEX_WARNING);
 	}
 
 	if(cvalue==pvalue)
@@ -808,18 +1036,18 @@ int toggle_lv1_patch(const char* name, uint64_t addr, uint64_t ovalue, uint64_t 
 		verify = lv1_peek(addr);
 		if (verify == ovalue)
 		{
-			showMessageRaw(msgf("Restore LV1 Patch: %s Success\naddr: 0x%016llX\ncvalue: 0x%016llX\nverify: 0x%016llX", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+			showMessageRaw(msgf("Restore LV1 Patch: %s Success\naddr: 0x%016llX\ncvalue: 0x%016llX\nverify: 0x%016llX", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 			return 0;
 		}
 		else
 		{
-			showMessageRaw(msgf("Restore LV1 Patch: %s Failed\naddr: 0x%016llX\ncvalue: 0x%016llX\nverify: 0x%016llX", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+			showMessageRaw(msgf("Restore LV1 Patch: %s Failed\naddr: 0x%016llX\ncvalue: 0x%016llX\nverify: 0x%016llX", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 			return 1;
 		}
 	}
 	else
 	{
-		//showMessageRaw(msgf("Expected Patched Value Not Found\naddr: 0x%016llX\ncvalue: 0x%016llX\npvalue: 0x%016llX", (char*)name, addr, cvalue, pvalue), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		//showMessageRaw(msgf("Expected Patched Value Not Found\naddr: 0x%016llX\ncvalue: 0x%016llX\npvalue: 0x%016llX", (char*)name, addr, cvalue, pvalue), (char*)XAI_PLUGIN, (char*)TEX_WARNING);
 	}
 }
 
@@ -835,18 +1063,18 @@ int toggle_lv1_patch32(const char* name, uint64_t addr, uint32_t ovalue, uint32_
 		verify = lv1_peek32(addr);
 		if (verify == pvalue)
 		{
-			showMessageRaw(msgf("Apply LV1 32-bit Patch: %s Success\naddr: 0x%08X\ncvalue: 0x%08X\nverify: 0x%08X", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+			showMessageRaw(msgf("Apply LV1 32-bit Patch: %s Success\naddr: 0x%08X\ncvalue: 0x%08X\nverify: 0x%08X", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 			return 0;
 		}
 		else
 		{
-			showMessageRaw(msgf("Apply LV1 32-bit Patch: %s Failed\naddr: 0x%08X\ncvalue: 0x%08X\nverify: 0x%08X", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+			showMessageRaw(msgf("Apply LV1 32-bit Patch: %s Failed\naddr: 0x%08X\ncvalue: 0x%08X\nverify: 0x%08X", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 			return 1;
 		}
 	}
 	else
 	{
-		//showMessageRaw(msgf("Expected Original Value Not Found\naddr: 0x%08X\ncvalue: 0x%08X\npvalue: 0x%08X", (char*)name, addr, cvalue, ovalue), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		//showMessageRaw(msgf("Expected Original Value Not Found\naddr: 0x%08X\ncvalue: 0x%08X\npvalue: 0x%08X", (char*)name, addr, cvalue, ovalue), (char*)XAI_PLUGIN, (char*)TEX_WARNING);
 	}
 
 	if(cvalue==pvalue)
@@ -855,18 +1083,18 @@ int toggle_lv1_patch32(const char* name, uint64_t addr, uint32_t ovalue, uint32_
 		verify = lv1_peek32(addr);
 		if (verify == ovalue)
 		{
-			showMessageRaw(msgf("Restore LV1 32-bit Patch: %s Success\naddr: 0x%08X\ncvalue: 0x%08X\nverify: 0x%08X", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+			showMessageRaw(msgf("Restore LV1 32-bit Patch: %s Success\naddr: 0x%08X\ncvalue: 0x%08X\nverify: 0x%08X", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 			return 0;
 		}
 		else
 		{
-			showMessageRaw(msgf("Restore LV1 32-bit Patch: %s Failed\naddr: 0x%08X\ncvalue: 0x%08X\nverify: 0x%08X", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+			showMessageRaw(msgf("Restore LV1 32-bit Patch: %s Failed\naddr: 0x%08X\ncvalue: 0x%08X\nverify: 0x%08X", (char*)name, addr, cvalue, verify), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 			return 1;
 		}
 	}
 	else
 	{
-		//showMessageRaw(msgf("Expected Patched Value Not Found\naddr: 0x%08X\ncvalue: 0x%08X\npvalue: 0x%08X", (char*)name, addr, cvalue, pvalue), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+		//showMessageRaw(msgf("Expected Patched Value Not Found\naddr: 0x%08X\ncvalue: 0x%08X\npvalue: 0x%08X", (char*)name, addr, cvalue, pvalue), (char*)XAI_PLUGIN, (char*)TEX_WARNING);
 	}
 }
 
@@ -903,10 +1131,10 @@ int lv1_poke_keyboard()
     // Verify the write by reading back the value
     verify = lv1_peek(addr);
     if(verify == value) {
-         showMessageRaw(msgf("Poke: Success.\naddr: 0x%016llX, value: 0x%016llX", addr, verify), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+         showMessageRaw(msgf("Poke: Success.\naddr: 0x%016llX, value: 0x%016llX", addr, verify), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
          return 0;
     } else {
-         showMessageRaw(msgf("Poke: Failed.\naddr: 0x%016llX, expected: 0x%016llX, got: 0x%016llX", addr, value, verify), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+         showMessageRaw(msgf("Poke: Failed.\naddr: 0x%016llX, expected: 0x%016llX, got: 0x%016llX", addr, value, verify), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
          return 1;
     }
 }*/
