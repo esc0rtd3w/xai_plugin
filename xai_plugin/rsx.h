@@ -4,7 +4,18 @@
 #include "hen.h"
 #include "lv1.h"
 
-// RSX Overclocking
+union clock_s {
+public:
+    struct {
+    public:
+        uint8_t junk1;
+        uint8_t junk2;
+        uint8_t mul;
+        uint8_t junk3;
+    };
+    uint32_t value;
+};
+
 void get_rsx_clock_speeds(void);
 void TestRsxClockSettings();
 void TestRsxClockSettingsSafe();

@@ -20,18 +20,6 @@ void toggle_lv1_patch_unmask_bootldr();
 void toggle_lv1_patch_test1();
 void toggle_lv1_patch_test2();
 
-union clock_s {
-public:
-    struct {
-    public:
-        uint8_t junk1;
-        uint8_t junk2;
-        uint8_t mul;
-        uint8_t junk3;
-    };
-    uint32_t value;
-};
-
 // HV dump region functions
 int dump_lv0_code();
 int dump_lv1_code();
