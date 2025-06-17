@@ -675,11 +675,11 @@ int getClockSpeeds()
 	int mode = 0;
 
 	// HEN
-	if(!is_hen())
+	/*if(!is_hen())
 	{
 		showMessage("msg_hen_notsupported_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return 1;
-	}
+	}*/
 
 	// Check if CFW Syscalls are disabled
 	if(checkSyscalls(LV1))
@@ -891,11 +891,11 @@ int dump_lv(int lv)
 	CellFsStat st;	
 
 	// HEN
-	if(!is_hen())
+	/*if(!is_hen())
 	{
 		showMessage("msg_hen_notsupported_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return 1;
-	}
+	}*/
 	
     system_call_1(387, (uint64_t)platform_info);
 
@@ -1019,11 +1019,11 @@ int dumpERK(int mode)
 	check_firmware(&firmware);
 
 	// HEN
-	if(!is_hen())
+	/*if(!is_hen())
 	{
 		showMessage("msg_hen_notsupported_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return -1;
-	}
+	}*/
 
 	if(firmware < 0x4080)
 	{
@@ -1055,11 +1055,11 @@ int dump_sysrom()
 	uint64_t off, val, nrw;	
 
 	// HEN
-	if(!is_hen())
+	/*if(!is_hen())
 	{
 		showMessage("msg_hen_notsupported_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return 1;
-	}
+	}*/
 
 	if(checkSyscalls(LV1))
 	{
@@ -3865,11 +3865,11 @@ void get_token_seed()
 	uint64_t auth_check_offset, um_read_eeprom_offset;
 
 	// HEN
-	if(!is_hen())
+	/*if(!is_hen())
 	{
 		showMessage("msg_hen_notsupported_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return;
-	}
+	}*/
 
 	if(checkSyscalls(LV1))
 	{
@@ -4169,11 +4169,11 @@ int spoof_mac()
 	}
 
 	// HEN
-	if(!is_hen())
+	/*if(!is_hen())
 	{
 		showMessage("msg_hen_notsupported_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return 1;
-	}
+	}*/
 	
 	usb_port = get_usb_device();
 

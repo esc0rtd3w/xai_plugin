@@ -169,11 +169,11 @@ int dump_eeprom()
 	int string, usb_port;
 
 	// HEN
-	if(!is_hen())
+	/*if(!is_hen())
 	{
 		showMessage("msg_hen_notsupported_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return 1;
-	}
+	}*/
 
 	if(checkSyscalls(LV2))
 	{
