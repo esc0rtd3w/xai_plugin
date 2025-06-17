@@ -392,13 +392,13 @@ void toggle_generic(char* path_to_file, char* name, int reverse_toggle)
 		{
 			cellFsOpen(path_to_file, CELL_FS_O_CREAT | CELL_FS_O_RDWR, &fd, 0, 0);
 			cellFsClose(fd);
-			showMessageRaw(msgf("%s Disabled", name), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+			showMessageRaw(msgf("%s Disabled", name), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 		}
 		else
 		{
 			cellFsOpen(path_to_file, CELL_FS_O_CREAT | CELL_FS_O_RDWR, &fd, 0, 0);
 			cellFsClose(fd);
-			showMessageRaw(msgf("%s Enabled", name), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+			showMessageRaw(msgf("%s Enabled", name), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 		}
 	}
 	else
@@ -406,12 +406,12 @@ void toggle_generic(char* path_to_file, char* name, int reverse_toggle)
 		if (reverse_toggle == 0)
 		{
 			cellFsUnlink(path_to_file);
-			showMessageRaw(msgf("%s Enabled", name), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+			showMessageRaw(msgf("%s Enabled", name), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 		}
 		else
 		{
 			cellFsUnlink(path_to_file);
-			showMessageRaw(msgf("%s Disabled", name), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+			showMessageRaw(msgf("%s Disabled", name), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 		}
 	}
 }
