@@ -5,6 +5,13 @@
 #include <string.h>
 #include <cell/fs/cell_fs_file_api.h>
 #include <sys/timer.h>
+#include "log.h"
+
+// Legacy HEN
+uint64_t peekq(uint64_t addr);
+uint32_t peekq32(uint64_t addr);
+void pokeq( uint64_t addr, uint64_t val);
+void pokeq32(uint64_t address, uint32_t value);
 
 #define process_id_t uint32_t
 extern process_id_t vsh_pid;
@@ -15,12 +22,6 @@ extern process_id_t vsh_pid;
 #define PS3MAPI_OPCODE_GET_PROC_MEM				0x0031
 #define PS3MAPI_OPCODE_SET_PROC_MEM				0x0032
 #define MAX_PROCESS 16
-
-// Legacy HEN
-uint64_t peekq(uint64_t addr);
-uint32_t peekq32(uint64_t addr);
-void pokeq( uint64_t addr, uint64_t val);
-void pokeq32(uint64_t address, uint32_t value);
 
 void kpatch(uint64_t kaddr, uint64_t kbytes);
 int read_vsh(uint64_t address, char *buf, int size);
