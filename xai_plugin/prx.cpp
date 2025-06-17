@@ -210,10 +210,6 @@ static void plugin_thread(uint64_t arg)
 	}
 
 	// Dump Tools
-	else if(strcmp(action_thread, "dump_lv2") == 0)	
-	{
-		dump_lv2();		
-	}
 	else if(strcmp(action_thread,"clean_log")==0)
 	{		
 		clean_log();
@@ -225,6 +221,9 @@ static void plugin_thread(uint64_t arg)
 	else if (strcmp(action_thread, "dump_psid") == 0)
 	{
 		dump_psid();
+	}
+	else if (strcmp(action_thread, "dump_ids") == 0) {
+		dump_ids();
 	}
 	else if(strcmp(action_thread,"log_klic")==0)
 	{
@@ -241,6 +240,36 @@ static void plugin_thread(uint64_t arg)
 	else if (strcmp(action_thread, "backup_registry") == 0)
 	{
 		backup_registry();
+	}
+	else if (strcmp(action_thread, "dump_erk") == 0) {
+		dumpERK(ERK);
+	}
+	else if (strcmp(action_thread, "dump_metldr") == 0) {
+		dumpERK(METLDR);
+	}
+	else if (strcmp(action_thread, "dump_lv2") == 0) {
+		dump_lv(LV2);
+	}
+	else if (strcmp(action_thread, "dump_lv1") == 0) {
+		dump_lv(LV1);
+	}
+	else if (strcmp(action_thread, "dump_ram") == 0) {
+		dump_lv(RAM);
+	}
+	else if (strcmp(action_thread, "dump_sysrom") == 0) {
+		dump_sysrom();
+	}
+	else if (strcmp(action_thread, "dump_eeprom") == 0) {
+		dump_eeprom();
+	}
+	else if (strcmp(action_thread, "get_token_seed") == 0) {
+		get_token_seed();
+	}
+	else if (strcmp(action_thread, "dump_flash") == 0) {
+		dumpFlash();
+	}
+	else if (strcmp(action_thread, "dump_syscon_log") == 0) {
+		sm_error_log();
 	}
 
 	// Service Tools
@@ -1384,7 +1413,7 @@ static void plugin_thread(uint64_t arg)
 		kpatch(0x80000000002FCB68ULL, 0x323032302F30312FULL);
 	}
 	*/
-	
+
 
 	/*
 	// EvilNat defaults
