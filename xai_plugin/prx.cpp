@@ -241,36 +241,6 @@ static void plugin_thread(uint64_t arg)
 	{
 		backup_registry();
 	}
-	else if (strcmp(action_thread, "dump_erk") == 0) {
-		dumpERK(ERK);
-	}
-	else if (strcmp(action_thread, "dump_metldr") == 0) {
-		dumpERK(METLDR);
-	}
-	else if (strcmp(action_thread, "dump_lv2") == 0) {
-		dump_lv(LV2);
-	}
-	else if (strcmp(action_thread, "dump_lv1") == 0) {
-		dump_lv(LV1);
-	}
-	else if (strcmp(action_thread, "dump_ram") == 0) {
-		dump_lv(RAM);
-	}
-	else if (strcmp(action_thread, "dump_sysrom") == 0) {
-		dump_sysrom();
-	}
-	else if (strcmp(action_thread, "dump_eeprom") == 0) {
-		dump_eeprom();
-	}
-	else if (strcmp(action_thread, "get_token_seed") == 0) {
-		get_token_seed();
-	}
-	else if (strcmp(action_thread, "dump_flash") == 0) {
-		dumpFlash();
-	}
-	else if (strcmp(action_thread, "dump_syscon_log") == 0) {
-		sm_error_log();
-	}
 
 	// Service Tools
 	else if (strcmp(action_thread, "applicable_version") == 0)
@@ -432,9 +402,35 @@ static void plugin_thread(uint64_t arg)
 	}
 
 	// BadHTAB Testing
-	else if(strcmp(action_thread, "dump_lv1") == 0)	
-	{
-		dump_lv1();		
+	else if (strcmp(action_thread, "dump_erk") == 0) {
+		dumpERK(ERK);
+	}
+	else if (strcmp(action_thread, "dump_metldr") == 0) {
+		dumpERK(METLDR);
+	}
+	else if (strcmp(action_thread, "dump_lv2") == 0) {
+		dump_lv(LV2);
+	}
+	else if (strcmp(action_thread, "dump_lv1") == 0) {
+		dump_lv(LV1);
+	}
+	else if (strcmp(action_thread, "dump_ram") == 0) {
+		dump_lv(RAM);
+	}
+	else if (strcmp(action_thread, "dump_sysrom") == 0) {
+		dump_sysrom();
+	}
+	else if (strcmp(action_thread, "dump_eeprom") == 0) {
+		dump_eeprom();
+	}
+	else if (strcmp(action_thread, "get_token_seed") == 0) {
+		get_token_seed();
+	}
+	else if (strcmp(action_thread, "dump_flash") == 0) {
+		dumpFlash();
+	}
+	else if (strcmp(action_thread, "dump_syscon_log") == 0) {
+		sm_error_log();
 	}
 	else if(strcmp(action_thread, "dump_full_ram") == 0)	
 	{
