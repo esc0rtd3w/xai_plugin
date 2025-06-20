@@ -295,8 +295,6 @@ bool IsExploited()
 	if (res != 0)
 	{
 		showMessageRaw(msgf("lv1_unmap_physical_address_region failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return false;
 	}*/
 
@@ -313,8 +311,6 @@ uint8_t get_bank_indicator()
 	if (res != 0)
 	{
 		showMessageRaw(msgf("update_mgr_read_eeprom failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return 0x99;
 	}
 
@@ -328,8 +324,6 @@ void set_bank_indicator(uint8_t value)
 	if (res != 0)
 	{
 		showMessageRaw(msgf("update_mgr_write_eeprom failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return;
 	}
 }
@@ -342,14 +336,12 @@ bool FlashIsNor()
 
 	if (res != 0)
 	{
-		//showMessageRaw(msgf("lv2_storage_get_cache_of_flash_ext_flag failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
+		showMessageRaw(msgf("lv2_storage_get_cache_of_flash_ext_flag failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return false;
 	}
 
 	// bit 0 set means NAND; cleared means NOR
-	//showMessageRaw(msgf("lv2_storage_get_cache_of_flash_ext_flag, res = %d, flag = 0x%02x\n", res, (uint32_t)flag), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	showMessageRaw(msgf("lv2_storage_get_cache_of_flash_ext_flag, res = %d, flag = 0x%02x\n", res, (uint32_t)flag), (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 	return !(flag & 0x1);
 }
 
@@ -362,8 +354,6 @@ bool TargetIsCEX()
 	if (res != 0)
 	{
 		showMessageRaw(msgf("lv2_dbg_get_console_type failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return false;
 	}
 
@@ -380,8 +370,6 @@ bool TargetIsDEX()
 	if (res != 0)
 	{
 		showMessageRaw(msgf("lv2_dbg_get_console_type failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return false;
 	}
 	
@@ -398,8 +386,6 @@ bool TargetIsDECR()
 	if (res != 0)
 	{
 		showMessageRaw(msgf("lv2_dbg_get_console_type failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return false;
 	}
 	
@@ -422,8 +408,6 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 	if (!FlashIsNor())
 	{
 		showMessageRaw("Flash is not nor!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return;
 	}
 
@@ -446,8 +430,6 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 	if (res != 0)
 	{
 		showMessageRaw(msgf("lv2_storage_open failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return;
 	}
 
@@ -456,8 +438,6 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 	if (buf == NULL)
 	{
 		showMessageRaw("malloc failed!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return;
 	}
 
@@ -495,8 +475,6 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 			if (res != 0)
 			{
 				showMessageRaw(msgf("lv2_storage_read failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-				//abort();
 				return;
 			}
 
@@ -507,8 +485,6 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 			if (res != 0)
 			{
 				showMessageRaw(msgf("lv2_storage_write failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-				//abort();
 				return;
 			}
 
@@ -528,8 +504,6 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 			if (res != 0)
 			{
 				showMessageRaw(msgf("lv2_storage_write failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-				//abort();
 				return;
 			}
 
@@ -549,8 +523,6 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 			if (res != 0)
 			{
 				showMessageRaw(msgf("lv2_storage_write failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-				//abort();
 				return;
 			}
 
@@ -566,8 +538,6 @@ void NorWrite(uint64_t offset, const void* data, uint64_t size)
 	if (res != 0)
 	{
 		showMessageRaw(msgf("lv2_storage_close failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return;
 	}
 
@@ -591,8 +561,6 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 	if (!FlashIsNor())
 	{
 		showMessageRaw("Flash is not nor!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return;
 	}
 
@@ -615,8 +583,6 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 	if (res != 0)
 	{
 		showMessageRaw(msgf("lv2_storage_open failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return;
 	}
 
@@ -625,8 +591,6 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 	if (buf == NULL)
 	{
 		showMessageRaw("malloc failed!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return;
 	}
 
@@ -664,8 +628,6 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 			if (res != 0)
 			{
 				showMessageRaw(msgf("lv2_storage_read failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-				//abort();
 				return;
 			}
 
@@ -685,8 +647,6 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 			if (res != 0)
 			{
 				showMessageRaw(msgf("lv2_storage_read failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-				//abort();
 				return;
 			}
 
@@ -706,8 +666,6 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 			if (res != 0)
 			{
 				showMessageRaw(msgf("lv2_storage_read failed! res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-				//abort();
 				return;
 			}
 
@@ -725,8 +683,6 @@ void NorRead(uint64_t offset, void* data, uint64_t size)
 	if (res != 0)
 	{
 		showMessageRaw(msgf("lv2_storage_close failed!, res = %d\n", res), (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return;
 	}
 
@@ -901,8 +857,6 @@ void BadWDSD_Write_Stagex()
     if (!FlashIsNor())
     {
         showMessageRaw("Flash is not nor!!!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-        //abort();
         return;
     }
 
@@ -932,8 +886,6 @@ void BadWDSD_Write_Stagex()
     if (fd < 0)
     {
         showMessageRaw("Stagex.bin not found!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-        //abort();
         return;
     }
 
@@ -953,8 +905,6 @@ void BadWDSD_Write_Stagex()
     if (size > (48 * 1024))
     {
         showMessageRaw("size is too big!!!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-        //abort();
         return;
     }
 
@@ -978,8 +928,6 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
     if (!FlashIsNor())
     {
         showMessageRaw("Flash is not nor!!!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-        //abort();
         return;
     }
 
@@ -1009,8 +957,6 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
     if (fd < 0)
     {
         showMessageRaw("CoreOS.bin not found!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-        //abort();
         return;
     }
 
@@ -1030,8 +976,6 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
     if (size > 0x700000)
     {
         showMessageRaw("size is too big!!!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-        //abort();
         return;
     }
 
@@ -1045,9 +989,6 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
         if (ros0 == NULL || ros1 == NULL)
         {
             showMessageRaw("malloc fail!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-            //abort();
-
             return;
         }
 
@@ -1057,8 +998,6 @@ void BadWDSD_Write_ros(bool compare, bool doFlashRos1)
         if (memcmp(ros0, ros1, 0x700000))
         {
             showMessageRaw("ros compare fail!, please reinstall same firmware twice!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-            //abort();
             return;
         }
 
@@ -1087,8 +1026,6 @@ int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
 	if (GetFWVersion() < 4.70)
 	{
 		showMessageRaw("firmware not supported!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-
-		//abort();
 		return 0;
 	}
 
@@ -1169,7 +1106,6 @@ int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
         if (bank_indicator != 0x00)
         {
             showMessageRaw("Please reinstall firmware ONCE again then try again.\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-            // abort();
             return 0;
         }
 		
@@ -1186,7 +1122,6 @@ int InstallQCFW(bool doLegacy, bool doSkipRosCompare, bool doFlashRos1)
         if (bank_indicator != 0xff)
         {
             showMessageRaw("Bank switch failed!\n", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
-            // abort();
             return 0;
         }
 
