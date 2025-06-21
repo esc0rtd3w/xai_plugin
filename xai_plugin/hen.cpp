@@ -406,12 +406,12 @@ void toggle_generic(char* path_to_file, char* name, int reverse_toggle)
 		if (reverse_toggle == 0)
 		{
 			cellFsUnlink(path_to_file);
-			showMessageRaw(msgf("%s Enabled", name), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+			showMessageRaw(msgf("%s Enabled", name), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 		}
 		else
 		{
 			cellFsUnlink(path_to_file);
-			showMessageRaw(msgf("%s Disabled", name), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
+			showMessageRaw(msgf("%s Disabled", name), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 		}
 	}
 }
