@@ -68,26 +68,31 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="badwdsd.cpp" />
     <ClCompile Include="cex2dex.cpp" />
-    <ClCompile Include="cfw_settings.cpp" />
+    <ClCompile Include="hfw_settings.cpp" />
     <ClCompile Include="cobra.cpp" />
     <ClCompile Include="des.cpp" />
     <ClCompile Include="eeprom.cpp" />
     <ClCompile Include="erk.cpp" />
     <ClCompile Include="functions.cpp" />
+    <ClCompile Include="hen.cpp" />
     <ClCompile Include="hvcall.cpp" />
     <ClCompile Include="log.cpp" />
+    <ClCompile Include="lv1.cpp" />
     <ClCompile Include="mm.cpp" />
     <ClCompile Include="otheros.cpp" />
     <ClCompile Include="payload.cpp" />
     <ClCompile Include="prx.cpp" />
     <ClCompile Include="qa.cpp" />
     <ClCompile Include="rebug.cpp" />
+    <ClCompile Include="rsx.cpp" />
     <ClCompile Include="savegames.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="badwdsd.h" />
     <ClInclude Include="cex2dex.h" />
-    <ClInclude Include="cfw_settings.h" />
+    <ClInclude Include="hfw_settings.h" />
     <ClInclude Include="cobra.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="des.h" />
@@ -98,8 +103,10 @@
     <ClInclude Include="functions.h" />
     <ClInclude Include="game_ext_plugin.h" />
     <ClInclude Include="gccpch.h" />
+    <ClInclude Include="hen.h" />
     <ClInclude Include="hvcall.h" />
     <ClInclude Include="log.h" />
+    <ClInclude Include="lv1.h" />
     <ClInclude Include="mm.h" />
     <ClInclude Include="otheros.h" />
     <ClInclude Include="payload.h" />
@@ -108,6 +115,7 @@
     <ClInclude Include="rebug.h" />
     <ClInclude Include="rebugtoolbox.h" />
     <ClInclude Include="recording_settings.h" />
+    <ClInclude Include="rsx.h" />
     <ClInclude Include="savegames.h" />
     <ClInclude Include="x3.h" />
     <ClInclude Include="xmb_plugin.h" />
