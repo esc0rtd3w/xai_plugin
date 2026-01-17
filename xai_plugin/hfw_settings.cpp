@@ -2734,7 +2734,7 @@ int filecopy(const char *src, const char *dst)
 {
 	int fd_src, fd_dst, ret;
 	
-	static const uint32_t buffer_MaxSize = (1024 * 1024);
+	static const uint32_t buffer_MaxSize = (128 * 1024);
 	char* buffer = (char*)malloc__(buffer_MaxSize);
 
 	if (buffer == NULL)
