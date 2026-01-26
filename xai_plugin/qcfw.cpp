@@ -412,6 +412,17 @@ bool qcfw_cpdir(const char* srcDirPath, const char* destDirPath)
 
 		if (dirent.d_type == CELL_FS_TYPE_DIRECTORY)
 		{
+			// Try to skip apple stuff
+
+			if (!strcmp(dirent.d_name, ".Spotlight-V100"))
+				continue;
+
+			if (!strcmp(dirent.d_name, ".Trashes"))
+				continue;
+
+			if (!strcmp(dirent.d_name, ".fseventsd"))
+				continue;
+
 			static const uint32_t srcFullPath_MaxSize = 1024;
 			char* srcFullPath = (char*)malloc__(srcFullPath_MaxSize);
 
@@ -448,6 +459,10 @@ bool qcfw_cpdir(const char* srcDirPath, const char* destDirPath)
 		}
 
 		if (dirent.d_type != CELL_FS_TYPE_REGULAR)
+			continue;
+
+		// Try to skip apple stuff
+		if ((dirent.d_name[0] == '.') && (dirent.d_name[1] == '_'))
 			continue;
 
 		static const uint32_t srcFullPath_MaxSize = 1024;
