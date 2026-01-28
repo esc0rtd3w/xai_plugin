@@ -2733,7 +2733,13 @@ int service_mode()
 int filecopy(const char *src, const char *dst)
 {
 	int fd_src, fd_dst, ret;
-	char buffer[0x1000];
+	
+	static const uint32_t buffer_MaxSize = (128 * 1024);
+	char* buffer = (char*)malloc__(buffer_MaxSize);
+
+	if (buffer == NULL)
+		return 1;
+
 	uint64_t nread, nrw;
 	CellFsStat stat;		
 
@@ -2744,10 +2750,11 @@ int filecopy(const char *src, const char *dst)
 		if(cellFsOpen(src, CELL_FS_O_RDONLY, &fd_src, 0, 0) != CELL_FS_SUCCEEDED || cellFsOpen(dst, CELL_FS_O_CREAT | CELL_FS_O_TRUNC | CELL_FS_O_RDWR, &fd_dst, 0, 0) != CELL_FS_SUCCEEDED)
 		{
 			cellFsClose(fd_src);
+			free__(buffer);
 			return 1;
 		}	
 
-		while((ret = cellFsRead(fd_src, buffer, 0x1000, &nread)) == CELL_FS_SUCCEEDED)
+		while((ret = cellFsRead(fd_src, buffer, buffer_MaxSize, &nread)) == CELL_FS_SUCCEEDED)
 		{
 			if((int)nread)
 			{
@@ -2757,10 +2764,9 @@ int filecopy(const char *src, const char *dst)
 				{
 					cellFsClose(fd_src);
 					cellFsClose(fd_dst);
+					free__(buffer);
 					return 1;
 				}
-
-				memset(buffer, 0, nread);
 			}
 			else			
 				break;			
@@ -2769,10 +2775,14 @@ int filecopy(const char *src, const char *dst)
 		cellFsChmod(dst, 0666);		
 	}
 	else
-		return 1;	    
+	{
+		free__(buffer);
+		return 1;
+	}
 	
 	cellFsClose(fd_src);
 	cellFsClose(fd_dst);
+	free__(buffer);
 
 	return 0;
 }

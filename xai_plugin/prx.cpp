@@ -23,6 +23,7 @@
 #include "badwdsd.h"
 #include "rsx.h"
 #include "lv1.h"
+#include "qcfw.h"
 
 #define XAI_VERSION "XAI Version 1.20"
 
@@ -39,6 +40,8 @@ xmb_plugin_xmb2 * xmb2_interface;
 xmb_plugin_mod0 * mod0_interface;
 
 sys_ppu_thread_t thread_id = 0;
+volatile bool thread_alive = false;
+
 const char * action_thread;
 
 int LoadPlugin(char *pluginname, void *handler)
@@ -2022,15 +2025,36 @@ static void plugin_thread(uint64_t arg)
 	//else if(strcmp(action_thread, "usb_firm_loader") == 0)	
 	//	usb_firm_loader();
 	*/
-	
+
+	thread_alive = false;
+	__asm volatile("sync");
+
 	sys_ppu_thread_exit(0);
 }
 
 void xai_plugin_interface_action::xai_plugin_action(const char * action)
 {	
+	if (thread_alive)
+		return;
+
+	// must install in main thread!
+	if (strcmp(action, "qcfw_install_stagex") == 0)
+	{
+		qcfw_install_stagex(true);
+		return;
+	}
+	else if (strcmp(action, "qcfw_install_qcfw") == 0)
+	{
+		qcfw_install_qcfw();
+		return;
+	}
+
 	thread_id = 0;
+	thread_alive = true;
 
 	log_function("xai_plugin", __VIEW__, __FUNCTION__, "(%s)\n", action);
 	action_thread = action;
+	__asm volatile("sync");
+
 	sys_ppu_thread_create(&thread_id, plugin_thread, 0, 3000, 0x4000, 0, "xai_thread");
 }
