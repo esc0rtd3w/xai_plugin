@@ -346,22 +346,27 @@ void showMessage(const char *string, const char *plugin, const char *tex_icon)
 
 void showMessageRaw(const char *text, const char *plugin, const char *tex_icon)
 {
-    int teximg, dummy = 0;
-    int plugin_uint = FindPlugin((char*)plugin);
+    int teximg = 0, dummy = 0;
+    uint32_t plugin_uint = 0;
+    if (FindPlugin && plugin)
+	    plugin_uint = (uint32_t)FindPlugin((char*)plugin);
 
-    // Convert the ASCII/UTF-8 “text” into a wide‐string buffer
-    wchar_t wbuf[120];
+    static wchar_t wbuf[512];
     int i;
-    for (i = 0; i < 119 && text[i] != '\0'; ++i) {
-        wbuf[i] = (wchar_t)text[i];
-    }
+    if (!text)
+	    text = "";
+    for (i = 0; i < 511 && text[i] != '\0'; ++i)
+	    wbuf[i] = (wchar_t)text[i];
     wbuf[i] = 0;
 
     log((char*)text);
     log("\n");
 
-	FindTexture(&teximg, plugin_uint, tex_icon);
-	NotifyWithTexture(0, tex_icon, 0, &teximg, &dummy, "", "", 0, (wchar_t*)wbuf, 0, 0, 0);
+    // If the plugin/texture was removed
+    if (FindTexture && plugin_uint && tex_icon)
+	    FindTexture((int32_t*)&teximg, plugin_uint, tex_icon);
+
+    NotifyWithTexture(0, tex_icon, 0, (int32_t*)&teximg, &dummy, "", "", 0, (wchar_t*)wbuf, 0, 0, 0);
 }
 
 int create_rifs()

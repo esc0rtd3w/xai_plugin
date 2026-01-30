@@ -557,6 +557,8 @@ void remove_directory(char*src)
 	int ret;
 	char list[1024];
 	ret = cellFsOpendir(src, &fd);
+	if (ret != CELL_FS_SUCCEEDED)
+		return;
 	//log("cellFsOpendir(%s, &fd) = %x\n", (char*)src, (char*)ret);
 
 	CellFsDirent dirent;
@@ -642,9 +644,7 @@ void remove_directory_bug(char*_src)
 void remove_file(char* path_to_file, char* message)
 {
 	cellFsUnlink(path_to_file);
-	char text[256];
-	vsh_sprintf(text, "Removed: %s.\n%s",path_to_file, message);
-	showMessageRaw(text, (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+	showMessageRaw(msgf("Removed: %s.\n%s", path_to_file, message), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
 }
 
 void uninstall_hen()
@@ -706,7 +706,8 @@ void uninstall_hen()
 		"/dev_rewrite/vsh/module/xai_plugin.sprx"
 	};
 	for (int i = 0; i < sizeof(flash_files) / sizeof(flash_files[0]); i++) {
-		if (cellFsUnlink(flash_files[i]) != CELL_FS_SUCCEEDED) {
+		ret = cellFsUnlink(flash_files[i]);
+		if (ret != CELL_FS_SUCCEEDED) {
 			showMessageRaw(msgf("Unlink Error: %x", ret), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 		}
 	}
