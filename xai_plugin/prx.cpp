@@ -404,6 +404,7 @@ static void plugin_thread(uint64_t arg)
 		toggle_rap_bin();
 	}
 
+	/*
 	// BadHTAB Testing
 	else if (strcmp(action_thread, "dump_erk") == 0) {
 		dumpERK(ERK);
@@ -499,7 +500,9 @@ static void plugin_thread(uint64_t arg)
 	{
 		test_lv1_poke32();
 	}
+	*/
 
+	/*
 	// BadWDSD/qCFW
 	else if(strcmp(action_thread, "badwdsd_install_qcfw") == 0)	
 	{
@@ -597,7 +600,9 @@ static void plugin_thread(uint64_t arg)
 	{
 		CompareROSBanks();
 	}
+	*/
 
+	/*
 	// LV1 Patches
 	else if (strcmp(action_thread, "enable_hvdbg") == 0)
 	{
@@ -615,9 +620,9 @@ static void plugin_thread(uint64_t arg)
 	{
 		toggle_lv1_patch_test2();
 	}
+	*/
 
-
-
+	/*
 	// Hypervisor dump actions
 	else if (strcmp(action_thread, "dump_lv0_code") == 0) {
 		dump_lv0_code();
@@ -871,7 +876,7 @@ static void plugin_thread(uint64_t arg)
 	else if (strcmp(action_thread, "dump_all_regions") == 0) {
 		dump_all_regions();
 	}
-
+	*/
 
 	// RSX Overclocking
 	/*else if (strcmp(action_thread, "lv1_oc_test_core") == 0)
