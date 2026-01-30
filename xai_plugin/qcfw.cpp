@@ -71,32 +71,11 @@ bool qcfw_read_from_file(const char* path, void* outBuf, uint64_t offset, uint32
 
 	if (result && (readSize > 0))
 	{
-		uint32_t left = readSize;
+		uint64_t readSuccessSize = 0;
+		cellFsRead(fd, outBuf, readSize, &readSuccessSize);
 
-		static const uint32_t chunkBuf_MaxSize = 0x1000;
-		uint8_t chunkBuf[chunkBuf_MaxSize];
-
-		uint32_t curOffset = 0;
-
-		while (1)
-		{
-			uint32_t processSize = (left > chunkBuf_MaxSize) ? chunkBuf_MaxSize : left;
-			uint64_t readSuccessSize = 0;
-
-			cellFsRead(fd, ((uint8_t*)outBuf) + curOffset, processSize, &readSuccessSize);
-
-			if (readSuccessSize != processSize)
-			{
-				result = false;
-				break;
-			}
-
-			curOffset += processSize;
-			left -= processSize;
-
-			if (left == 0)
-				break;
-		}
+		if (readSuccessSize != readSize)
+			result = false;
 	}
 
 	cellFsClose(fd);
@@ -117,27 +96,13 @@ uint32_t qcfw_crc32c(uint32_t crc, const uint8_t* buf, size_t len)
 	return ~crc;
 }
 
-bool qcfw_check_crc32(const char* filePath, const char* crc32FilePath)
+bool qcfw_calc_crc32(const char* filePath, uint32_t* outCrc32)
 {
 	CellFsStat file_Stat;
 	if (cellFsStat(filePath, &file_Stat) != CELL_FS_SUCCEEDED)
 		return false;
 
-	CellFsStat crc32File_Stat;
-	if (cellFsStat(crc32FilePath, &crc32File_Stat) != CELL_FS_SUCCEEDED)
-		return false;
-
 	if ((file_Stat.st_size == 0) || (file_Stat.st_size > 0x10000000))
-		return false;
-
-	if (crc32File_Stat.st_size != 4)
-		return false;
-
-	uint32_t expectedCrc32 = 0;
-	if (!qcfw_read_from_file(crc32FilePath, &expectedCrc32, 0, 4))
-		return false;
-
-	if (expectedCrc32 == 0)
 		return false;
 
 	static const uint32_t tmpDataBuf_MaxSize = (256 * 1024); // careful!
@@ -177,10 +142,48 @@ bool qcfw_check_crc32(const char* filePath, const char* crc32FilePath)
 	free__(tmpDataBuf);
 	tmpDataBuf = NULL;
 
-	if (result)
-		result = (crc32 == expectedCrc32);
+	if (outCrc32 != NULL)
+		*outCrc32 = crc32;
 
 	return result;
+}
+
+bool qcfw_get_qcfw_crc32(const char* crc32FilePath, uint32_t* outStagexCrc32, uint32_t* outStagexAuxCrc32, uint32_t* outCoreOSCrc32)
+{
+	CellFsStat crc32File_Stat;
+	if (cellFsStat(crc32FilePath, &crc32File_Stat) != CELL_FS_SUCCEEDED)
+		return false;
+
+	if (crc32File_Stat.st_size != 12)
+		return false;
+
+	uint32_t crc32s[3];
+	crc32s[0] = 0;
+	crc32s[1] = 0;
+	crc32s[2] = 0;
+
+	if (!qcfw_read_from_file(crc32FilePath, crc32s, 0, 12))
+		return false;
+
+	if (crc32s[0] == 0)
+		return false;
+
+	if (crc32s[1] == 0)
+		return false;
+
+	if (crc32s[2] == 0)
+		return false;
+
+	if (outStagexCrc32 != NULL)
+		*outStagexCrc32 = crc32s[0];
+
+	if (outStagexAuxCrc32 != NULL)
+		*outStagexAuxCrc32 = crc32s[1];
+
+	if (outCoreOSCrc32 != NULL)
+		*outCoreOSCrc32 = crc32s[2];
+
+	return true;
 }
 
 bool qcfw_nor_write(uint64_t offset, const void* data, uint32_t size)
@@ -322,13 +325,11 @@ bool qcfw_install_stagex(bool showSuccess)
 	}
 
 	const char* stagex_path = "/dev_usb000/qcfw/Stagex.bin";
-	const char* stagex_crc32_path = "/dev_usb000/qcfw/Stagex.bin.crc32";
 	bool stagex_exist = false;
 	CellFsStat stagex_stat;
 	stagex_exist = (cellFsStat(stagex_path, &stagex_stat) == CELL_FS_SUCCEEDED);
 
 	const char* stagex_aux_path = "/dev_usb000/qcfw/Stagex_aux.bin";
-	const char* stagex_aux_crc32_path = "/dev_usb000/qcfw/Stagex_aux.bin.crc32";
 	bool stagex_aux_exist = false;
 	CellFsStat stagex_aux_stat;
 	stagex_aux_exist = (cellFsStat(stagex_aux_path, &stagex_aux_stat) == CELL_FS_SUCCEEDED);
@@ -349,13 +350,35 @@ bool qcfw_install_stagex(bool showSuccess)
 		return false;
 	}
 
-	if (!qcfw_check_crc32(stagex_path, stagex_crc32_path))
+	uint32_t stagex_crc32 = 0;
+	if (!qcfw_calc_crc32(stagex_path, &stagex_crc32) || (stagex_crc32 == 0))
+	{
+		PrintString(L"Stagex CRC32 calc failed!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
+	uint32_t stagex_aux_crc32 = 0;
+	if (!qcfw_calc_crc32(stagex_aux_path, &stagex_aux_crc32) || (stagex_aux_crc32 == 0))
+	{
+		PrintString(L"Stagex_aux CRC32 calc failed!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
+	uint32_t expected_stagex_crc32 = 0;
+	uint32_t expected_stagex_aux_crc32 = 0;
+	if (!qcfw_get_qcfw_crc32("/dev_usb000/qcfw/qcfw.crc32", &expected_stagex_crc32, &expected_stagex_aux_crc32, NULL) || (expected_stagex_crc32 == 0) || (expected_stagex_aux_crc32 == 0))
+	{
+		PrintString(L"qcfw CRC32 get failed!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
+	if (stagex_crc32 != expected_stagex_crc32)
 	{
 		PrintString(L"Stagex CRC32 check failed!", XAI_PLUGIN, TEX_ERROR);
 		return false;
 	}
 
-	if (!qcfw_check_crc32(stagex_aux_path, stagex_aux_crc32_path))
+	if (stagex_aux_crc32 != expected_stagex_aux_crc32)
 	{
 		PrintString(L"Stagex_aux CRC32 check failed!", XAI_PLUGIN, TEX_ERROR);
 		return false;
@@ -615,7 +638,6 @@ bool qcfw_install_qcfw()
 	}
 
 	const char* coreos_path = "/dev_usb000/qcfw/CoreOS.bin";
-	const char* coreos_crc32_path = "/dev_usb000/qcfw/CoreOS.bin.crc32";
 	bool coreos_exist = false;
 	CellFsStat coreos_stat;
 	coreos_exist = (cellFsStat(coreos_path, &coreos_stat) == CELL_FS_SUCCEEDED);
@@ -638,7 +660,21 @@ bool qcfw_install_qcfw()
 	if (!qcfw_install_stagex(false))
 		return false;
 
-	if (!qcfw_check_crc32(coreos_path, coreos_crc32_path))
+	uint32_t coreos_crc32 = 0;
+	if (!qcfw_calc_crc32(coreos_path, &coreos_crc32) || (coreos_crc32 == 0))
+	{
+		PrintString(L"CoreOS CRC32 calc failed!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
+	uint32_t expected_coreos_crc32 = 0;
+	if (!qcfw_get_qcfw_crc32("/dev_usb000/qcfw/qcfw.crc32", NULL, NULL, &expected_coreos_crc32) || (expected_coreos_crc32 == 0))
+	{
+		PrintString(L"qcfw CRC32 get failed!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
+	if (coreos_crc32 != expected_coreos_crc32)
 	{
 		PrintString(L"CoreOS CRC32 check failed!", XAI_PLUGIN, TEX_ERROR);
 		return false;
