@@ -877,6 +877,23 @@ void toggle_hotkey_polling()
 	toggle_generic("/dev_hdd0/hen/toggles/hotkey_polling.off", "HotKey Polling at Launch", 0);
 }
 
+void toggle_99_pkg_install()
+{
+	toggle_generic("/dev_hdd0/hen/toggles/99_pkg_install.on", "99 PSN Package Limit", 1);
+	sys_timer_usleep(100000);
+	CellFsStat stat;
+	if (cellFsStat("/dev_hdd0/hen/toggles/99_pkg_install.on", &stat) == CELL_OK)
+	{
+		read_write_generic2("/dev_hdd0/hen/toggles/99_pkg_install/on/hen_pkg_manager_full.xml", "/dev_rewrite/hen/remap/hen_pkg_manager_full.xml", 0644);
+		showMessageRaw("99 PSN Package Limit", (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+	}
+	else
+	{
+		read_write_generic2("/dev_hdd0/hen/toggles/99_pkg_install/off/hen_pkg_manager_full.xml", "/dev_rewrite/hen/remap/hen_pkg_manager_full.xml", 0644);
+		showMessageRaw("99 PSN Package Limit", (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+	}
+}
+
 void toggle_app_home()
 {
 	toggle_generic("/dev_hdd0/hen/toggles/app_home.on", "app_home Support", 1);

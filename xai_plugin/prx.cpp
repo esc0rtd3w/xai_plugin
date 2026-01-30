@@ -386,6 +386,12 @@ static void plugin_thread(uint64_t arg)
 		toggle_hotkey_polling();
 	}
 
+	// Toggle 99 PSN Package Installer Limit
+	else if (strcmp(action_thread, "toggle_99_pkg_install") == 0)
+	{
+		toggle_99_pkg_install();
+	}
+
 	// Toggle app_home support
 	else if (strcmp(action_thread, "toggle_app_home") == 0)
 	{
