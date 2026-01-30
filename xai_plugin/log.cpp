@@ -16,6 +16,7 @@ void load_log_functions()
 {	
 	setNIDfunc(vsh_sprintf, "stdc", 0x273B9711);
 	setNIDfunc(vsh_swprintf, "stdc", 0x62BF1D6C);
+	setNIDfunc(vsh_vsnprintf, "stdc", 0x99A72146);
 
 	/*(void*&)(vsh_sprintf) = (void*)((int)getNIDfunc("stdc", 0x273B9711));
 	(void*&)(vsh_swprintf) = (void*)((int)getNIDfunc("stdc", 0x62BF1D6C));	*/
@@ -307,10 +308,13 @@ void notify(char *param)
 
 const char* msgf(const char* fmt, ...)
 {
-    static char buffer[256];
+    static char buffer[512];
     va_list ap;
     va_start(ap, fmt);
-    vsh_sprintf(buffer, fmt, ap);
+	if (vsh_vsnprintf)
+		vsh_vsnprintf(buffer, sizeof(buffer), fmt, ap);
+	else
+		buffer[0] = 0;
     va_end(ap);
     return buffer;
 }

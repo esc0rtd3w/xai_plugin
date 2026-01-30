@@ -2,6 +2,7 @@
 #define _LOG_H
 
 #include <stdio.h>
+#include <stdarg.h>
 
 void load_log_functions();
 char *getlogpath();
@@ -9,6 +10,7 @@ void setlogpath(char *path);
 
 static int (*vsh_sprintf)( char*, const char*,...);
 static int (*vsh_swprintf)(wchar_t *, size_t, const wchar_t *,...);
+static int (*vsh_vsnprintf)(char *, size_t, const char *, va_list);
 
 int sprintf_(char *str, const char *format, int v1);
 int sprintf_(char *str, const char *format, int v1, int v2);
