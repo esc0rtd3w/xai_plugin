@@ -425,11 +425,18 @@ void read_write_generic(const char* src, const char* dest)
 		showMessageRaw(msgf("%s Open Error: %x", src, ret), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 	else
 	{
-		int fdb;
-		ret = cellFsOpen(dest, CELL_FS_O_CREAT | CELL_FS_O_RDWR, &fdb, 0, 0);
+		int fdb = -1;
+		ret = cellFsOpen(dest, CELL_FS_O_CREAT | CELL_FS_O_RDWR | CELL_FS_O_TRUNC, &fdb, 0, 0);
 
 		//log("src: %s\n", (char*)src);
 		//log("dest: %s\n", (char*)dest);
+
+		if (ret != CELL_OK)
+		{
+			showMessageRaw(msgf("%s Open Error: %x", dest, ret), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+			cellFsClose(fda);
+			return;
+		}
 
 		uint8_t buf[0x1000];
 		uint64_t nr, nrw;
@@ -443,6 +450,8 @@ void read_write_generic(const char* src, const char* dest)
 				if (ret != CELL_FS_SUCCEEDED)
 				{
 					showMessageRaw(msgf("%s Copy Error: %x", src, ret), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+					cellFsClose(fda);
+					cellFsClose(fdb);
 					return;
 				}
 
@@ -555,21 +564,34 @@ void remove_directory(char*src)
 {
 	int fd;
 	int ret;
-	char list[1024];
+	char *list = (char*)malloc_(1024);
+	if (!list)
+		return;
+
 	ret = cellFsOpendir(src, &fd);
 	if (ret != CELL_FS_SUCCEEDED)
+	{
+		free_(list);
 		return;
+	}
 	//log("cellFsOpendir(%s, &fd) = %x\n", (char*)src, (char*)ret);
 
 	CellFsDirent dirent;
 	uint64_t n;
 	while ((ret = cellFsReaddir(fd, &dirent, &n)) == CELL_FS_SUCCEEDED && n > 0)
 	{
+		if (dirent.d_namlen >= sizeof(dirent.d_name))
+			dirent.d_namlen = sizeof(dirent.d_name) - 1;
+		dirent.d_name[dirent.d_namlen] = 0;
+
 		//log("cellFsReaddir(fd, &dirent, &n) = %x -> ", ret);
 		//log(dirent.d_name); log("\n");
 
 		if (CELL_FS_TYPE_DIRECTORY != dirent.d_type)
 		{
+			if ((strlen(src) + 1 + strlen(dirent.d_name) + 1) >= 1024)
+				continue;
+
 			vsh_sprintf(list, "%s/%s", src, dirent.d_name);
 			//log("Fileout: %s\n", list);
 
@@ -579,6 +601,9 @@ void remove_directory(char*src)
 		}
 		else if (strcmp(dirent.d_name, ".") != 0 && strcmp(dirent.d_name, "..") != 0)
 		{
+			if ((strlen(src) + 1 + strlen(dirent.d_name) + 1) >= 1024)
+				continue;
+
 			vsh_sprintf(list, "%s/%s", src, dirent.d_name);
 			//log("Dirout: %s\n", list);
 
@@ -593,6 +618,8 @@ void remove_directory(char*src)
 
 	ret = cellFsClosedir(fd);
 	//log("cellFsClosedir(fd) = %x\n", ret);
+
+	free_(list);
 }
 
 /*
