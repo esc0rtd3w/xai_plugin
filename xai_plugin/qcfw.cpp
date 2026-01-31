@@ -71,27 +71,67 @@ bool qcfw_read_from_file(const char* path, void* outBuf, uint64_t offset, uint32
 
 	if (result && (readSize > 0))
 	{
-		uint32_t left = readSize;
+		uint64_t readSuccessSize = 0;
+		cellFsRead(fd, outBuf, readSize, &readSuccessSize);
 
-		static const uint32_t chunkBuf_MaxSize = 0x1000;
-		uint8_t chunkBuf[chunkBuf_MaxSize];
+		if (readSuccessSize != readSize)
+			result = false;
+	}
 
-		uint32_t curOffset = 0;
+	cellFsClose(fd);
+	return result;
+}
+
+// initial crc should be 0
+uint32_t qcfw_crc32c(uint32_t crc, const uint8_t* buf, size_t len)
+{
+	int32_t k;
+
+	crc = ~crc;
+	while (len--) {
+		crc ^= *buf++;
+		for (k = 0; k < 8; k++)
+			crc = crc & 1 ? (crc >> 1) ^ 0xedb88320 : crc >> 1;
+	}
+	return ~crc;
+}
+
+bool qcfw_calc_crc32(const char* filePath, uint32_t* outCrc32)
+{
+	CellFsStat file_Stat;
+	if (cellFsStat(filePath, &file_Stat) != CELL_FS_SUCCEEDED)
+		return false;
+
+	if ((file_Stat.st_size == 0) || (file_Stat.st_size > 0x10000000))
+		return false;
+
+	static const uint32_t tmpDataBuf_MaxSize = (256 * 1024); // careful!
+	uint8_t* tmpDataBuf = (uint8_t*)malloc__(tmpDataBuf_MaxSize);
+
+	if (tmpDataBuf == NULL)
+		return false;
+
+	bool result = true;
+
+	uint32_t crc32 = 0;
+
+	{
+		uint32_t curFileOffset = 0;
+		uint32_t left = (uint32_t)file_Stat.st_size;
 
 		while (1)
 		{
-			uint32_t processSize = (left > chunkBuf_MaxSize) ? chunkBuf_MaxSize : left;
-			uint64_t readSuccessSize = 0;
+			uint32_t processSize = (left > tmpDataBuf_MaxSize) ? tmpDataBuf_MaxSize : left;
 
-			cellFsRead(fd, ((uint8_t*)outBuf) + curOffset, processSize, &readSuccessSize);
-
-			if (readSuccessSize != processSize)
+			if (!qcfw_read_from_file(filePath, tmpDataBuf, curFileOffset, processSize))
 			{
 				result = false;
 				break;
 			}
 
-			curOffset += processSize;
+			crc32 = qcfw_crc32c(crc32, tmpDataBuf, processSize);
+
+			curFileOffset += processSize;
 			left -= processSize;
 
 			if (left == 0)
@@ -99,8 +139,51 @@ bool qcfw_read_from_file(const char* path, void* outBuf, uint64_t offset, uint32
 		}
 	}
 
-	cellFsClose(fd);
+	free__(tmpDataBuf);
+	tmpDataBuf = NULL;
+
+	if (outCrc32 != NULL)
+		*outCrc32 = crc32;
+
 	return result;
+}
+
+bool qcfw_get_qcfw_crc32(const char* crc32FilePath, uint32_t* outStagexCrc32, uint32_t* outStagexAuxCrc32, uint32_t* outCoreOSCrc32)
+{
+	CellFsStat crc32File_Stat;
+	if (cellFsStat(crc32FilePath, &crc32File_Stat) != CELL_FS_SUCCEEDED)
+		return false;
+
+	if (crc32File_Stat.st_size != 12)
+		return false;
+
+	uint32_t crc32s[3];
+	crc32s[0] = 0;
+	crc32s[1] = 0;
+	crc32s[2] = 0;
+
+	if (!qcfw_read_from_file(crc32FilePath, crc32s, 0, 12))
+		return false;
+
+	if (crc32s[0] == 0)
+		return false;
+
+	if (crc32s[1] == 0)
+		return false;
+
+	if (crc32s[2] == 0)
+		return false;
+
+	if (outStagexCrc32 != NULL)
+		*outStagexCrc32 = crc32s[0];
+
+	if (outStagexAuxCrc32 != NULL)
+		*outStagexAuxCrc32 = crc32s[1];
+
+	if (outCoreOSCrc32 != NULL)
+		*outCoreOSCrc32 = crc32s[2];
+
+	return true;
 }
 
 bool qcfw_nor_write(uint64_t offset, const void* data, uint32_t size)
@@ -264,6 +347,40 @@ bool qcfw_install_stagex(bool showSuccess)
 	)
 	{
 		PrintString(L"Bad file size!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
+	uint32_t stagex_crc32 = 0;
+	if (!qcfw_calc_crc32(stagex_path, &stagex_crc32) || (stagex_crc32 == 0))
+	{
+		PrintString(L"Stagex CRC32 calc failed!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
+	uint32_t stagex_aux_crc32 = 0;
+	if (!qcfw_calc_crc32(stagex_aux_path, &stagex_aux_crc32) || (stagex_aux_crc32 == 0))
+	{
+		PrintString(L"Stagex_aux CRC32 calc failed!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
+	uint32_t expected_stagex_crc32 = 0;
+	uint32_t expected_stagex_aux_crc32 = 0;
+	if (!qcfw_get_qcfw_crc32("/dev_usb000/qcfw/qcfw.crc32", &expected_stagex_crc32, &expected_stagex_aux_crc32, NULL) || (expected_stagex_crc32 == 0) || (expected_stagex_aux_crc32 == 0))
+	{
+		PrintString(L"qcfw CRC32 get failed!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
+	if (stagex_crc32 != expected_stagex_crc32)
+	{
+		PrintString(L"Stagex CRC32 check failed!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
+	if (stagex_aux_crc32 != expected_stagex_aux_crc32)
+	{
+		PrintString(L"Stagex_aux CRC32 check failed!", XAI_PLUGIN, TEX_ERROR);
 		return false;
 	}
 
@@ -542,6 +659,26 @@ bool qcfw_install_qcfw()
 
 	if (!qcfw_install_stagex(false))
 		return false;
+
+	uint32_t coreos_crc32 = 0;
+	if (!qcfw_calc_crc32(coreos_path, &coreos_crc32) || (coreos_crc32 == 0))
+	{
+		PrintString(L"CoreOS CRC32 calc failed!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
+	uint32_t expected_coreos_crc32 = 0;
+	if (!qcfw_get_qcfw_crc32("/dev_usb000/qcfw/qcfw.crc32", NULL, NULL, &expected_coreos_crc32) || (expected_coreos_crc32 == 0))
+	{
+		PrintString(L"qcfw CRC32 get failed!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
+	if (coreos_crc32 != expected_coreos_crc32)
+	{
+		PrintString(L"CoreOS CRC32 check failed!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
 
 	static const uint32_t tmpDataBuf_MaxSize = (256 * 1024); // careful!
 	uint8_t* tmpDataBuf = (uint8_t*)malloc__(tmpDataBuf_MaxSize);
