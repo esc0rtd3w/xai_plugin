@@ -677,7 +677,9 @@ void remove_file(char* path_to_file, char* message)
 void uninstall_hen()
 {
 	int ret = 0;
-	CellFsStat stat;
+
+	log((char*)"uninstall_hen(): start\n");
+	showMessageRaw("Uninstall PS3HEN: starting...", (char*)XAI_PLUGIN, (char*)TEX_INFO2);
 	
 	// Restore OFW Files
 	const char* src_paths[] = {
@@ -707,16 +709,19 @@ void uninstall_hen()
 		"/dev_rewrite/vsh/resource/explore/xmb/download_list.xml",
 		"/dev_rewrite/vsh/resource/explore/xmb/registory.xml"
 	};
-
-	for (int i = 0; i < sizeof(src_paths) / sizeof(src_paths[0]); i++) {
-		CellFsStat stat;
-		if (cellFsStat(src_paths[i], &stat) != CELL_FS_SUCCEEDED) {
+	
+	for (int i = 0; i < (int)(sizeof(src_paths) / sizeof(src_paths[0])); i++)
+    {
+        CellFsStat st;
+        if (cellFsStat(src_paths[i], &st) != CELL_FS_SUCCEEDED)
 			// Source file does not exist
 			continue;
-		}
+
+        log((char*)msgf("Restore OFW: %s -> %s\n", src_paths[i], dest_paths[i]));
 		cellFsUnlink(dest_paths[i]);
 		sys_timer_usleep(100000);
 		read_write_generic(src_paths[i], dest_paths[i]);
+        log((char*)msgf("Restore OFW: done %s\n", dest_paths[i]));
 	}
 
 	// Remove HEN Files in Flash
@@ -732,19 +737,270 @@ void uninstall_hen()
 		"/dev_rewrite/vsh/module/videorec.sprx",
 		"/dev_rewrite/vsh/module/xai_plugin.sprx"
 	};
-	for (int i = 0; i < sizeof(flash_files) / sizeof(flash_files[0]); i++) {
+
+	for (int i = 0; i < (int)(sizeof(flash_files) / sizeof(flash_files[0])); i++)
+	{
+		log((char*)msgf("Flash unlink: %s\n", flash_files[i]));
 		ret = cellFsUnlink(flash_files[i]);
-		if (ret != CELL_FS_SUCCEEDED) {
+		if (ret != CELL_FS_SUCCEEDED)
+		{
 			showMessageRaw(msgf("Unlink Error: %x", ret), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+			log((char*)msgf("Flash unlink FAIL ret=%x %s\n", ret, flash_files[i]));
 		}
 	}
-	
-	sys_timer_usleep(2000000);
 
-	// Remove HEN Directories
-	remove_directory("/dev_hdd0/theme/../../dev_hdd0/hen");
-	remove_directory("/dev_hdd0/theme/../../dev_hdd0/game/PS3XPLOIT");
-	remove_directory("/dev_hdd0/theme/../../dev_rewrite/hen");
+    sys_timer_usleep(2000000);
+
+	// Remove PS3HEN directories
+    //showMessageRaw("Removing PS3HEN files/directories...", (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+    log((char*)"Remove PS3HEN Directories: cleanup start\n");
+
+    static const char* mLockedVirtual = "/dev_hdd0/hen/xml/hen_enable.xml";
+    static const char* mLockedBug = "/dev_hdd0/theme/../../dev_hdd0/hen/xml/hen_enable.xml";
+
+    static const char* hen_files[] =
+    {
+        // dev_rewrite/hen
+        "/dev_rewrite/hen/PS3HEN.BIN",
+        "/dev_rewrite/hen/remap/xml/hen_pkg_manager_full.xml",
+        "/dev_rewrite/hen/remap/xml/hen_pkg_manager_full_classic.xml",
+        "/dev_rewrite/hen/remap/xml/hfw_settings.xml",
+        "/dev_rewrite/hen/xml/hen_enable.xml",
+        "/dev_rewrite/hen/xml/ps3hen_updater.xml",
+        "/dev_rewrite/hen/xml/ps3hen_updater_debug.xml",
+
+        // dev_hdd0/game/PS3XPLOIT
+        "/dev_hdd0/game/PS3XPLOIT/USRDIR/hen.installed",
+        "/dev_hdd0/game/PS3XPLOIT/USRDIR/rap.bin",
+
+        // dev_hdd0/hen
+        "/dev_hdd0/hen/hen.cfg",
+
+        // dev_hdd0/hen/icon
+        "/dev_hdd0/hen/icon/auto_update.png",
+        "/dev_hdd0/hen/icon/bad_htab_menu.png",
+        "/dev_hdd0/hen/icon/blind.png",
+        "/dev_hdd0/hen/icon/blind2.png",
+        "/dev_hdd0/hen/icon/bubble_download.png",
+        "/dev_hdd0/hen/icon/clear_psn_cache.png",
+        "/dev_hdd0/hen/icon/clear_web_cache.png",
+        "/dev_hdd0/hen/icon/disable_remaps_on_next_boot.png",
+        "/dev_hdd0/hen/icon/disc.png",
+        "/dev_hdd0/hen/icon/dump.png",
+        "/dev_hdd0/hen/icon/dump_backup_xregistry.png",
+        "/dev_hdd0/hen/icon/dump_clean_log.png",
+        "/dev_hdd0/hen/icon/dump_disc_hashkey.png",
+        "/dev_hdd0/hen/icon/dump_file.png",
+        "/dev_hdd0/hen/icon/dump_idps.png",
+        "/dev_hdd0/hen/icon/dump_log_klicense.png",
+        "/dev_hdd0/hen/icon/dump_log_secure_fileid.png",
+        "/dev_hdd0/hen/icon/dump_lv1_memory.png",
+        "/dev_hdd0/hen/icon/dump_lv2_memory.png",
+        "/dev_hdd0/hen/icon/dump_psid.png",
+        "/dev_hdd0/hen/icon/dump_view_log.png",
+        "/dev_hdd0/hen/icon/flash.png",
+        "/dev_hdd0/hen/icon/flash2.png",
+        "/dev_hdd0/hen/icon/folder_base.png",
+        "/dev_hdd0/hen/icon/folder_development.png",
+        "/dev_hdd0/hen/icon/folder_download.png",
+        "/dev_hdd0/hen/icon/folder_dump.png",
+        "/dev_hdd0/hen/icon/folder_game.png",
+        "/dev_hdd0/hen/icon/folder_hft.png",
+        "/dev_hdd0/hen/icon/folder_info.png",
+        "/dev_hdd0/hen/icon/folder_ingame.png",
+        "/dev_hdd0/hen/icon/folder_list.png",
+        "/dev_hdd0/hen/icon/folder_log.png",
+        "/dev_hdd0/hen/icon/folder_maintenance.png",
+        "/dev_hdd0/hen/icon/folder_plain.png",
+        "/dev_hdd0/hen/icon/folder_play.png",
+        "/dev_hdd0/hen/icon/folder_plugin.png",
+        "/dev_hdd0/hen/icon/folder_ps2.png",
+        "/dev_hdd0/hen/icon/folder_ps3.png",
+        "/dev_hdd0/hen/icon/folder_psp.png",
+        "/dev_hdd0/hen/icon/folder_psx.png",
+        "/dev_hdd0/hen/icon/folder_qcfw.png",
+        "/dev_hdd0/hen/icon/folder_qcfw2.png",
+        "/dev_hdd0/hen/icon/folder_reboot.png",
+        "/dev_hdd0/hen/icon/folder_retro.png",
+        "/dev_hdd0/hen/icon/folder_service.png",
+        "/dev_hdd0/hen/icon/folder_theme.png",
+        "/dev_hdd0/hen/icon/folder_theme_select.png",
+        "/dev_hdd0/hen/icon/folder_theme_sub.png",
+        "/dev_hdd0/hen/icon/folder_video.png",
+        "/dev_hdd0/hen/icon/folder_warn.png",
+        "/dev_hdd0/hen/icon/folder_xmbm.png",
+        "/dev_hdd0/hen/icon/generic_copy.png",
+        "/dev_hdd0/hen/icon/generic_info.png",
+        "/dev_hdd0/hen/icon/generic_toggle.png",
+        "/dev_hdd0/hen/icon/hdd.png",
+        "/dev_hdd0/hen/icon/hen_dev_build.png",
+        "/dev_hdd0/hen/icon/hen_mode_custom.png",
+        "/dev_hdd0/hen/icon/hen_mode_debug.png",
+        "/dev_hdd0/hen/icon/hen_mode_release.png",
+        "/dev_hdd0/hen/icon/hen_mode_usb_000.png",
+        "/dev_hdd0/hen/icon/hen_mode_usb_001.png",
+        "/dev_hdd0/hen/icon/hen_mode_usb_custom.png",
+        "/dev_hdd0/hen/icon/hen_update_apps.png",
+        "/dev_hdd0/hen/icon/hen_update_info.png",
+        "/dev_hdd0/hen/icon/hen_update_info_note.png",
+        "/dev_hdd0/hen/icon/hen_update_main.png",
+        "/dev_hdd0/hen/icon/hen_update_theme.png",
+        "/dev_hdd0/hen/icon/ingame_enable_ss.png",
+        "/dev_hdd0/hen/icon/ingame_override_sfo.png",
+        "/dev_hdd0/hen/icon/music.png",
+        "/dev_hdd0/hen/icon/package_download.png",
+        "/dev_hdd0/hen/icon/photo.png",
+        "/dev_hdd0/hen/icon/playstation_network_content.png",
+        "/dev_hdd0/hen/icon/power_full.png",
+        "/dev_hdd0/hen/icon/power_off.png",
+        "/dev_hdd0/hen/icon/power_soft.png",
+        "/dev_hdd0/hen/icon/ps3xploit_www.png",
+        "/dev_hdd0/hen/icon/recovery_check_file_system.png",
+        "/dev_hdd0/hen/icon/recovery_display_minver.png",
+        "/dev_hdd0/hen/icon/recovery_rebuild_db.png",
+        "/dev_hdd0/hen/icon/recovery_toggle.png",
+        "/dev_hdd0/hen/icon/settings.png",
+        "/dev_hdd0/hen/icon/switch_hen_mode.png",
+        "/dev_hdd0/hen/icon/toggle_99_pkg_install.png",
+        "/dev_hdd0/hen/icon/toggle_app_home.png",
+        "/dev_hdd0/hen/icon/toggle_clear_psn_ci.png",
+        "/dev_hdd0/hen/icon/toggle_clear_psn_mi.png",
+        "/dev_hdd0/hen/icon/toggle_clear_psn_ptl.png",
+        "/dev_hdd0/hen/icon/toggle_clear_web_auth_cache.png",
+        "/dev_hdd0/hen/icon/toggle_clear_web_cookie.png",
+        "/dev_hdd0/hen/icon/toggle_clear_web_history.png",
+        "/dev_hdd0/hen/icon/toggle_hotkey_polling.png",
+        "/dev_hdd0/hen/icon/toggle_patch_libaudio.png",
+        "/dev_hdd0/hen/icon/toggle_quick_preview.png",
+        "/dev_hdd0/hen/icon/toggle_rap_bin.png",
+        "/dev_hdd0/hen/icon/trigger_hen_install.png",
+        "/dev_hdd0/hen/icon/uninstall_hen.png",
+        "/dev_hdd0/hen/icon/video.png",
+        "/dev_hdd0/hen/icon/video2.png",
+
+        // dev_hdd0/hen/mode
+        "/dev_hdd0/hen/mode/debug/PS3HEN.BIN",
+        "/dev_hdd0/hen/mode/debug/coldboot.raf",
+        "/dev_hdd0/hen/mode/debug/hen_disabled.png",
+        "/dev_hdd0/hen/mode/debug/hen_enable.png",
+        "/dev_hdd0/hen/mode/debug/ps3hen_updater.xml",
+
+        "/dev_hdd0/hen/mode/release/PS3HEN.BIN",
+        "/dev_hdd0/hen/mode/release/coldboot.raf",
+        "/dev_hdd0/hen/mode/release/hen_disabled.png",
+        "/dev_hdd0/hen/mode/release/hen_enable.png",
+        "/dev_hdd0/hen/mode/release/ps3hen_updater.xml",
+
+        "/dev_hdd0/hen/mode/usb/000/hen_enable.xml",
+        "/dev_hdd0/hen/mode/usb/001/hen_enable.xml",
+        "/dev_hdd0/hen/mode/usb/coldboot.raf",
+        "/dev_hdd0/hen/mode/usb/hen_disabled.png",
+        "/dev_hdd0/hen/mode/usb/hen_enable.png",
+
+        // dev_hdd0/hen/restore
+        "/dev_hdd0/hen/restore/category_game.xml",
+        "/dev_hdd0/hen/restore/category_network.xml",
+        "/dev_hdd0/hen/restore/category_psn.xml",
+        "/dev_hdd0/hen/restore/category_video.xml",
+        "/dev_hdd0/hen/restore/coldboot.raf",
+        "/dev_hdd0/hen/restore/download_list.xml",
+        "/dev_hdd0/hen/restore/explore_plugin_full.rco",
+        "/dev_hdd0/hen/restore/registory.xml",
+        "/dev_hdd0/hen/restore/software_update_plugin.rco",
+
+        // dev_hdd0/hen/toggles
+        "/dev_hdd0/hen/toggles/TOGGLES_GO_HERE.txt",
+        "/dev_hdd0/hen/toggles/99_pkg_install/off/hen_pkg_manager_full.xml",
+        "/dev_hdd0/hen/toggles/99_pkg_install/on/hen_pkg_manager_full.xml",
+        "/dev_hdd0/hen/toggles/app_home/off/category_game.xml",
+        "/dev_hdd0/hen/toggles/app_home/on/category_game.xml",
+        "/dev_hdd0/hen/toggles/quick_preview/off/explore_plugin.sprx",
+        "/dev_hdd0/hen/toggles/quick_preview/on/explore_plugin.sprx",
+	
+        // auto update file
+        "/dev_hdd0/hen_updater.off"
+    };
+
+    static const char* hen_dirs[] =
+    {
+        // dev_hdd0/game/PS3XPLOIT
+        "/dev_hdd0/game/PS3XPLOIT/USRDIR",
+        "/dev_hdd0/game/PS3XPLOIT",
+
+        // dev_hdd0/hen
+        "/dev_hdd0/hen/icon",
+        "/dev_hdd0/hen/mode/usb/000",
+        "/dev_hdd0/hen/mode/usb/001",
+        "/dev_hdd0/hen/mode/debug",
+        "/dev_hdd0/hen/mode/release",
+        "/dev_hdd0/hen/mode/usb",
+        "/dev_hdd0/hen/mode",
+        "/dev_hdd0/hen/restore",
+
+        "/dev_hdd0/hen/toggles/99_pkg_install/off",
+        "/dev_hdd0/hen/toggles/99_pkg_install/on",
+        "/dev_hdd0/hen/toggles/99_pkg_install",
+        "/dev_hdd0/hen/toggles/app_home/off",
+        "/dev_hdd0/hen/toggles/app_home/on",
+        "/dev_hdd0/hen/toggles/app_home",
+        "/dev_hdd0/hen/toggles/quick_preview/off",
+        "/dev_hdd0/hen/toggles/quick_preview/on",
+        "/dev_hdd0/hen/toggles/quick_preview",
+        "/dev_hdd0/hen/toggles",
+
+        "/dev_hdd0/hen/xml",
+        "/dev_hdd0/hen",
+
+        // dev_rewrite/hen
+        "/dev_rewrite/hen/remap/xml",
+        "/dev_rewrite/hen/remap",
+        "/dev_rewrite/hen/xml",
+        "/dev_rewrite/hen"
+    };
+
+    int total = 0, ok = 0, fail = 0, skipped = 0;
+    for (int i = 0; i < (int)(sizeof(hen_files) / sizeof(hen_files[0])); i++)
+    {
+        const char* p = hen_files[i];
+        total++;
+
+        if (strcmp(p, mLockedVirtual) == 0)
+        {
+            skipped++;
+            log((char*)msgf("skip locked %s\n", p));
+            continue;
+        }
+
+        ret = cellFsUnlink(p);
+        if (ret == CELL_FS_SUCCEEDED)
+        {
+            ok++;
+            log((char*)msgf("unlink OK %s\n", p));
+        }
+        else
+        {
+            fail++;
+            log((char*)msgf("unlink FAIL ret=%x %s\n", ret, p));
+        }
+    }
+
+    log((char*)msgf("locked unlink try %s\n", mLockedBug));
+    ret = cellFsUnlink(mLockedBug);
+    if (ret == CELL_FS_SUCCEEDED)
+        log((char*)msgf("locked unlink OK %s\n", mLockedBug));
+    else
+        log((char*)msgf("locked unlink FAIL ret=%x %s\n", ret, mLockedBug));
+
+    log((char*)"rmdir phase\n");
+    for (int di = 0; di < (int)(sizeof(hen_dirs) / sizeof(hen_dirs[0])); di++)
+    {
+        const char* d = hen_dirs[di];
+        ret = cellFsRmdir(d);
+        log((char*)msgf("rmdir ret=%x %s\n", ret, d));
+    }
+
+    log((char*)msgf("done (total=%d ok=%d fail=%d skipped=%d)\n", total, ok, fail, skipped));
+
 	cellFsRmdir("/dev_hdd0/hen");
 	cellFsRmdir("/dev_hdd0/game/PS3XPLOIT");
 	cellFsRmdir("/dev_rewrite/hen");
@@ -753,7 +1009,7 @@ void uninstall_hen()
 	
 	showMessageRaw("PS3HEN has been removed.\nSystem will now reboot back into HFW...", (char*)XAI_PLUGIN, (char*)TEX_INFO2);
 
-	sys_timer_usleep(5000000);
+	sys_timer_usleep(8000000);
 
 	rebootXMB(SYS_SOFT_REBOOT);
 }
