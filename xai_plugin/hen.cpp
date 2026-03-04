@@ -770,6 +770,10 @@ void uninstall_hen()
         "/dev_rewrite/hen/xml/ps3hen_updater_debug.xml",
 
         // dev_hdd0/game/PS3XPLOIT
+        "/dev_hdd0/game/PS3XPLOIT/ICON0.PNG",
+        "/dev_hdd0/game/PS3XPLOIT/PARAM.SFO",
+		
+        // dev_hdd0/game/PS3XPLOIT/USRDIR
         "/dev_hdd0/game/PS3XPLOIT/USRDIR/hen.installed",
         "/dev_hdd0/game/PS3XPLOIT/USRDIR/rap.bin",
 
