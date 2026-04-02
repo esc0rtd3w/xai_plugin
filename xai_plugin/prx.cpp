@@ -410,6 +410,19 @@ static void plugin_thread(uint64_t arg)
 		toggle_rap_bin();
 	}
 
+	// Plugins
+	else if (strcmp(action_thread, "toggle_wifi_debug_plugin") == 0)
+	{
+		toggle_kernel_boot_plugin("/dev_flash/hen/plugins/kernel/wifi_debug.bin");
+	}
+
+	/*
+	else if (strcmp(action_thread, "toggle_config_tool_plugin") == 0)
+	{
+		toggle_user_boot_plugin("/dev_flash/hen/plugins/user/config_tool.sprx");
+	}
+	*/
+
 	/*
 	// BadHTAB Testing
 	else if (strcmp(action_thread, "dump_erk") == 0) {

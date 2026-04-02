@@ -762,6 +762,8 @@ void uninstall_hen()
     {
         // dev_rewrite/hen
         "/dev_rewrite/hen/PS3HEN.BIN",
+        "/dev_rewrite/hen/plugins/kernel/wifi_debug.bin",
+        //"/dev_rewrite/hen/plugins/user/",
         "/dev_rewrite/hen/remap/xml/hen_pkg_manager_full.xml",
         "/dev_rewrite/hen/remap/xml/hen_pkg_manager_full_classic.xml",
         "/dev_rewrite/hen/remap/xml/hfw_settings.xml",
@@ -779,6 +781,7 @@ void uninstall_hen()
 
         // dev_hdd0/hen
         "/dev_hdd0/hen/hen.cfg",
+        //"/dev_hdd0/hen/stage3.bin",
 
         // dev_hdd0/hen/icon
         "/dev_hdd0/hen/icon/auto_update.png",
@@ -958,6 +961,9 @@ void uninstall_hen()
         // dev_rewrite/hen
         "/dev_rewrite/hen/remap/xml",
         "/dev_rewrite/hen/remap",
+        "/dev_rewrite/hen/plugins/kernel/",
+        "/dev_rewrite/hen/plugins/user/",
+        "/dev_rewrite/hen/plugins/",
         "/dev_rewrite/hen/xml",
         "/dev_rewrite/hen"
     };
@@ -1195,3 +1201,149 @@ void toggle_quick_preview()
 		showMessageRaw("Quick Preview Disabled\nOriginal explore_plugin.sprx copied\nRefresh XMB or Reboot.", (char*)XAI_PLUGIN, (char*)TEX_INFO2);
 	}
 }
+
+// Read/Write boot plugins txt files
+static int toggle_boot_plugin_file(const char* boot_plugins_path, const char* path_to_file, const char* plugin_type)
+{
+	int ret;
+	CellFsStat stat;
+	enum { BOOT_PLUGINS_MAX_SIZE = 4096 };
+	char input_buffer[BOOT_PLUGINS_MAX_SIZE];
+	char output_buffer[BOOT_PLUGINS_MAX_SIZE];
+	size_t input_size = 0;
+	size_t output_size = 0;
+	size_t path_len;
+	int found = 0;
+
+	if(!boot_plugins_path || !path_to_file || !plugin_type)
+	{
+		showMessageRaw("Invalid boot plugins arguments", (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+		return -1;
+	}
+
+	path_len = strlen(path_to_file);
+	if(path_len == 0 || path_len + 2 >= BOOT_PLUGINS_MAX_SIZE)
+	{
+		showMessageRaw("Boot plugin path is too long", (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+		return -1;
+	}
+
+	ret = cellFsStat(boot_plugins_path, &stat);
+	if(ret == CELL_OK)
+	{
+		input_size = (size_t)stat.st_size;
+		if(input_size >= BOOT_PLUGINS_MAX_SIZE)
+		{
+			showMessageRaw(msgf("Boot plugins file too large\n%s", boot_plugins_path), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+			return -1;
+		}
+
+		ret = readfile(boot_plugins_path, (uint8_t*)input_buffer, input_size);
+		if(ret != CELL_OK)
+		{
+			showMessageRaw(msgf("Failed to read boot plugins file\n0x%08X\n%s", (uint32_t)ret, boot_plugins_path), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+			return ret;
+		}
+
+		input_buffer[input_size] = '\0';
+	}
+	else
+	{
+		input_buffer[0] = '\0';
+		input_size = 0;
+	}
+
+	output_buffer[0] = '\0';
+
+	if(input_buffer[0] != '\0')
+	{
+		char* line_start = input_buffer;
+		char* cursor = input_buffer;
+
+		while(1)
+		{
+			if(*cursor == '\r' || *cursor == '\n' || *cursor == '\0')
+			{
+				size_t line_len = (size_t)(cursor - line_start);
+
+				if(line_len > 0)
+				{
+					if(line_len == path_len && strncmp(line_start, path_to_file, path_len) == 0)
+					{
+						found = 1;
+					}
+					else
+					{
+						if(output_size + line_len + 1 >= BOOT_PLUGINS_MAX_SIZE)
+						{
+							showMessageRaw(msgf("Boot plugins output too large\n%s", boot_plugins_path), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+							return -1;
+						}
+
+						memcpy(output_buffer + output_size, line_start, line_len);
+						output_size += line_len;
+						output_buffer[output_size++] = '\n';
+					}
+				}
+
+				while(*cursor == '\r' || *cursor == '\n')
+					cursor++;
+
+				if(*cursor == '\0')
+					break;
+
+				line_start = cursor;
+				continue;
+			}
+
+			cursor++;
+		}
+	}
+
+	if(!found)
+	{
+		if(output_size + path_len + 2 >= BOOT_PLUGINS_MAX_SIZE)
+		{
+			showMessageRaw(msgf("Boot plugins output too large\n%s", boot_plugins_path), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+			return -1;
+		}
+
+		memcpy(output_buffer + output_size, path_to_file, path_len);
+		output_size += path_len;
+		output_buffer[output_size++] = '\n';
+	}
+
+	if(output_size + 2 >= BOOT_PLUGINS_MAX_SIZE)
+	{
+		showMessageRaw(msgf("Boot plugins output too large\n%s", boot_plugins_path), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+		return -1;
+	}
+
+	output_buffer[output_size++] = '\n';
+	output_buffer[output_size] = '\0';
+
+	ret = saveFile(boot_plugins_path, output_buffer, output_size);
+	if(ret != CELL_OK)
+	{
+		showMessageRaw(msgf("Failed to write boot plugins file\n0x%08X\n%s", (uint32_t)ret, boot_plugins_path), (char*)XAI_PLUGIN, (char*)TEX_ERROR);
+		return ret;
+	}
+
+	if(found)
+		showMessageRaw(msgf("%s Removed from boot plugins\n%s\n%s", plugin_type, boot_plugins_path, path_to_file), (char*)XAI_PLUGIN, (char*)TEX_INFO2);
+	else
+		showMessageRaw(msgf("%s Added to boot plugins\n%s\n%s", plugin_type, boot_plugins_path, path_to_file), (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
+
+	return CELL_OK;
+}
+
+int toggle_kernel_boot_plugin(const char* path_to_file)
+{
+	return toggle_boot_plugin_file("/dev_hdd0/boot_plugins_kernel.txt", path_to_file, "Kernel Plugin");
+}
+
+int toggle_user_boot_plugin(const char* path_to_file)
+{
+	return toggle_boot_plugin_file("/dev_hdd0/boot_plugins.txt", path_to_file, "User Plugin");
+}
+

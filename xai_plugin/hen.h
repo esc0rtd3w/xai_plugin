@@ -60,6 +60,11 @@ void toggle_clear_psn_ci();
 void toggle_clear_psn_mi();
 void toggle_clear_psn_ptl();
 
+// Plugins
+static int toggle_boot_plugin_file(const char* boot_plugins_path, const char* path_to_file, const char* plugin_type);
+int toggle_kernel_boot_plugin(const char* path_to_file);
+int toggle_user_boot_plugin(const char* path_to_file);
+
 void write_toggle(char* path_to_file, char* message);
 void toggle_generic(char* path_to_file, char* name, int reverse_toggle);
 void read_write_generic(const char* src, const char* dest);
