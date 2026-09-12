@@ -344,7 +344,7 @@ int checkSyscalls(int mode)
 	return 0;
 }
 
-void buzzer(uint8_t mode)
+void buzzer(uint32_t mode)
 {	
 	system_call_3(392, 0x1007, 0xA, mode);
 }

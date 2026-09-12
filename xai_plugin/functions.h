@@ -300,7 +300,7 @@ int sys_sm_request_error_log(uint8_t offset, uint8_t *unknown0, uint32_t *unknow
 
 int checkSyscalls(int mode);
 
-void buzzer(uint8_t mode);
+void buzzer(uint32_t mode);
 
 int check_flash_free_space();
 

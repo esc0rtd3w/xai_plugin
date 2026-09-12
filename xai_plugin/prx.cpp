@@ -2079,6 +2079,21 @@ void xai_plugin_interface_action::xai_plugin_action(const char * action)
 		qcfw_install_qcfw();
 		return;
 	}
+	else if (strcmp(action, "qcfw_dump_nor_to_usb") == 0)
+	{
+		qcfw_dump_nor_to_usb();
+		return;
+	}
+	else if (strcmp(action, "qcfw_dump_emmc_to_usb_256M") == 0)
+	{
+		qcfw_dump_emmc_to_usb_256M();
+		return;
+	}
+	else if (strcmp(action, "qcfw_dump_emmc_to_usb_12G") == 0)
+	{
+		qcfw_dump_emmc_to_usb_12G();
+		return;
+	}
 
 	thread_id = 0;
 	thread_alive = true;
