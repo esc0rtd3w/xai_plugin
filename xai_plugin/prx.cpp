@@ -423,6 +423,13 @@ static void plugin_thread(uint64_t arg)
 	}
 	*/
 
+	// Multipad Controller Bridge
+	else if (strcmp(action_thread, "toggle_multipad_plugin") == 0)
+	{
+		toggle_user_boot_plugin("/dev_flash/hen/plugins/user/multipad.sprx");
+		toggle_kernel_boot_plugin("/dev_flash/hen/plugins/kernel/multipad.bin");
+	}
+
 	/*
 	// BadHTAB Testing
 	else if (strcmp(action_thread, "dump_erk") == 0) {
