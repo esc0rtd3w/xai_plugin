@@ -72,10 +72,10 @@ bool qcfw_is_nor()
 	return !(flag & 0x1);
 }
 
-bool qcfw_is_emmc()
+uint64_t qcfw_emmc_get_sector_count()
 {
 	if (qcfw_is_nor())
-		return false;
+		return 0;
 
 	int32_t res;
 
@@ -84,9 +84,30 @@ bool qcfw_is_emmc()
 	struct storage_device_info info;
 	res = lv2_storage_get_device_info(dev_id, &info);
 	if (res != 0)
-		return false;
+		return 0;
 
-	return ((info.sector_size == 512) && (info.capacity == 0x1892e00));
+	if (info.sector_size != 512)
+		return 0;
+
+	// info.capacity =
+	// 0x1892e00 (KLMAG2GE4A-A001)
+	// 0x189ee00 (KLMAG2GEAC-B001)
+
+	uint64_t result = (info.capacity + 0x200);
+	if (result < 0x1000000)
+		return 0;
+	
+	return result;
+}
+
+uint64_t qcfw_emmc_get_size()
+{
+	return (qcfw_emmc_get_sector_count() * 512);
+}
+
+bool qcfw_is_emmc()
+{
+	return (qcfw_emmc_get_size() > 0);
 }
 
 bool qcfw_sc_read_shadow_os_bank_indicator(uint8_t* outValue)
@@ -731,7 +752,7 @@ int32_t qcfw_lv2_storage_read_emmc(uint32_t dev_handle, uint64_t unknown1, uint6
 	if (sector_count == 0)
 		return 0;
 
-	if ((start_sector + sector_count) > 0x1893000)
+	if ((start_sector + sector_count) > qcfw_emmc_get_sector_count())
 		return 1;
 
 	static const uint32_t sector_size = 512;
@@ -776,7 +797,7 @@ int32_t qcfw_lv2_storage_write_emmc(uint32_t dev_handle, uint64_t unknown1, uint
 	if (sector_count == 0)
 		return 0;
 
-	if ((start_sector + sector_count) > 0x1893000)
+	if ((start_sector + sector_count) > qcfw_emmc_get_sector_count())
 		return 1;
 
 	static const uint32_t sector_size = 512;
@@ -815,7 +836,7 @@ bool qcfw_emmc_read(uint64_t offset, void* data, uint32_t size, uint32_t burst_s
 	if (size == 0)
 		return true;
 
-	if ((offset + size) > 13193183232ull) // 0x1893000 * 512
+	if ((offset + size) > qcfw_emmc_get_size())
 		return false;
 
 	if (!qcfw_is_emmc())
@@ -924,7 +945,7 @@ bool qcfw_emmc_write(uint64_t offset, const void* data, uint32_t size, uint32_t 
 	if (size == 0)
 		return true;
 
-	if ((offset + size) > 13193183232ull) // 0x1893000 * 512
+	if ((offset + size) > qcfw_emmc_get_size())
 		return false;
 
 	if (!qcfw_is_emmc())
@@ -1916,7 +1937,7 @@ bool qcfw_dump_emmc_to_usb_12G()
 
 	bool is_complete = qcfw_emmc_is_complete();
 
-	static const uint64_t dump_size = 13193183232ull;
+	const uint64_t dump_size = qcfw_emmc_get_size();
 	static const uint64_t chunk_size = (3ULL * 1024ULL * 1024ULL * 1024ULL);
 
 	uint64_t cur_offset = 0;
